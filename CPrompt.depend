@@ -1,0 +1,90 @@
+# depslib dependency file v1.0
+1255762289 source:/home/roma/projects/CPrompt/cprtypes.cpp
+	"cprtypes.h"
+	<iostream>
+	<string.h>
+	<stdlib.h>
+	<string.h>
+
+1255725826 /home/roma/projects/CPrompt/cprtypes.h
+	"lists.h"
+	"rpnlist.h"
+
+1255710764 /home/roma/projects/CPrompt/lists.h
+	<cstdlib>
+
+1255712574 /home/roma/projects/CPrompt/rpnlist.h
+	"cprtypes.h"
+	<stdlib.h>
+	"stack.h"
+	<ctype.h>
+	<cstring>
+	<iostream>
+	"stringlist.h"
+	"cprapp.h"
+
+1255710740 /home/roma/projects/CPrompt/stack.h
+	"lists.h"
+	<stdlib.h>
+
+1255294051 source:/home/roma/projects/CPrompt/cpr_parser.cpp
+	<string.h>
+	<fstream>
+	"cpr_parser.h"
+
+1249917608 /home/roma/projects/CPrompt/cpr_parser.h
+	"sets.h"
+
+1249917608 /home/roma/projects/CPrompt/sets.h
+	<string.h>
+
+1255723634 source:/home/roma/projects/CPrompt/cprapp.cpp
+	<stdio.h>
+	<stdlib.h>
+	<new>
+	"lists.h"
+	"stringlist.h"
+	"cprapp.h"
+	"cprtypes.h"
+
+1253969388 /home/roma/projects/CPrompt/stringlist.h
+	"lists.h"
+	"string.h"
+
+1255711214 /home/roma/projects/CPrompt/cprapp.h
+	"trees.h"
+	"cpr_parser.h"
+	"main.h"
+	"cprtypes.h"
+	"stack.h"
+	<fstream>
+
+1254423762 /home/roma/projects/CPrompt/trees.h
+	<iostream>
+	"lists.h"
+	"main.h"
+
+1255720187 /home/roma/projects/CPrompt/main.h
+	<stdio.h>
+
+1249917608 source:/home/roma/projects/CPrompt/cprexec.cpp
+	"cprtypes.h"
+	"cprexec.h"
+
+1249917608 /home/roma/projects/CPrompt/cprexec.h
+
+1255712493 source:/home/roma/projects/CPrompt/main.cpp
+	<iostream>
+	<fstream>
+	<string.h>
+	<fstream>
+	"stringlist.h"
+	"main.h"
+	"cprapp.h"
+	"cprtypes.h"
+
+1255762716 source:/home/roma/projects/CPrompt/rpnlist.cpp
+	<stdlib.h>
+	"cprtypes.h"
+	"rpnlist.h"
+
