@@ -15,7 +15,7 @@ enum CPRTreeNodeType
         tntVarOutput=99
     };
 
-static char* arTypenames[]={"char","int","float","double","void","long","short","signed","unsigned","*","&"};
+static char* arTypenames[]={"char","int","float","double","void","long","short","super","signed","unsigned","*","&"};
 
 struct CPRTextDataType
 {

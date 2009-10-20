@@ -59,6 +59,7 @@ DTVar* CPRApplication::FindVariable(char* sName)
 
 char* CPRApplication::ReadTypename(ag::list<CPRTokenInfo>::member& p)
 {
+    std::cout<<"CPRApplication::ReadTypename\n";
     ag::stringlist sl;
     ag::stringlist::member sl_m;
     sl.delall();
@@ -85,6 +86,7 @@ char* CPRApplication::ReadTypename(ag::list<CPRTokenInfo>::member& p)
         str[iSz2-1]=' ';
     }
     str[iSz]=0;
+    std::cout<<"Typename: "<<str<<"\n";
     return str;
 }
 
@@ -106,12 +108,14 @@ char* CPRApplication::ReadToSymbol(ag::list<CPRTokenInfo>::member& p,char _symb)
 
 char* CPRApplication::ReadIdent(ag::list<CPRTokenInfo>::member* p)
 {
+    std::cout<<"CPRApplication::ReadIdent()\n";
     CPRParser prs(this->sPText,(*p)->data.iStartPos);
     char* m  = prs.ReadIdent();
 /*    char* m2 = ((strcmp(m,"*")==0)||(strcmp(m,"&")==0))?prs.ReadIdent():NULL;
     if (m2!=NULL) strcat(m,m2);*/
     while((*p)->data.iStartPos<prs.iPosition-1)(*p)=(*p)->next;
     (*p)=(*p)->prev;
+    std::cout<<"Ident: "<<m<<"\n";
     return m;
 }
 
@@ -127,6 +131,7 @@ char* CPRApplication::ReadToEOLN(ag::list<CPRTokenInfo>::member* p)//!!!!!!!!!!!
 }
 void CPRApplication::BuildTree()
 {
+    std::cout<<"CPRApplication::BuildTree()\n";
     int state=0;
     ag::tree<CPRTreeNode*>* mainparent=this->aTree;
     ag::tree<CPRTreeNode*>* funcparent=this->aTree->addchild(MakeCPRTreeNode(tntNone,"FUNCTIONS"));
@@ -137,15 +142,17 @@ void CPRApplication::BuildTree()
     CPRTextDataType *dt;
     int k=0;
     char *str1,*str2,*str3;
+    int* q;
     int iSz;
     int iSz2;
-    int*l;
+    int *l;
     for(ag::list<CPRTokenInfo>::member p=aTokens.head;p!=NULL;p=p->next)
     {
-        l=new int;
+        //l=new int;
         switch (state)
         {
             case 0://new expression
+                std::cout<<"(s0) start\n";
                 if (p->data.sCurrText[0]=='#')
                 {
 					p=p->next;
@@ -180,12 +187,14 @@ void CPRApplication::BuildTree()
             break;
 
             case 1://<typename>_
+                std::cout<<"(s1) start\n";
                 str2=ReadIdent(&p);
                 state=2;
                 std::cout<<"(s1): '"<<str2<<"' ident for typename '"<<str1<<"'\n";
             break;
 
             case 2://<typename>_<ident>_
+                std::cout<<"(s2) start\n";
                 if (strcmp(p->data.sCurrText,"(")==0)
                 {
                     // function
@@ -201,20 +210,24 @@ void CPRApplication::BuildTree()
             break;
 
             case 3://<typename>_<ident>=, <typename>_<ident>;
+                std::cout<<"(s3) start\n";
                 if (strcmp(p->data.sCurrText,"=")==0)
                 {
                     p=p->next;
                     str3=ReadToSymbol(p,';');
                     std::cout<<"(s3): init '"<<str2<<"' variable with '"<<str3<<"'\n";
-                    CPRTreeNode* C=MakeCPRTreeNode(tntDeclareVar,NULL,NULL,NULL);
-                    tp=new ag::tree<CPRTreeNode*>(currparent,C);
-                    FillCPRTreeNode(C,tntDeclareVar,str1,str2,str3);
+//                    CPRTreeNode* C=MakeCPRTreeNode(tntDeclareVar,NULL,NULL,NULL);
+//                    tp=new ag::tree<CPRTreeNode*>(currparent,C);
+//                    FillCPRTreeNode(C,tntDeclareVar,str1,str2,str3);
+                    CPRTreeNode* C=MakeCPRTreeNode(tntDeclareVar,str1,str2,str3);
                 }else
                     tp=new ag::tree<CPRTreeNode*>(currparent,MakeCPRTreeNode(tntDeclareVar,str1,str2,NULL));
+                q=new int;
                 state=0;
             break;
 
             case 4://<typename>_<ident>(
+                std::cout<<"(s4) start\n";
                 n=MakeCPRTreeNode(tntFunction,str1,str2);
                 n->r1=new ag::list<CPRTextDataType>;
                 while ((strcmp(p->data.sCurrText,")")!=0)&&(p!=NULL))

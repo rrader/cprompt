@@ -88,7 +88,7 @@
 	"cprtypes.h"
 	"rpnlist.h"
 
-1255762289 source:/home/roma/projects/cprompt/trunk/src/cprtypes.cpp
+1256062223 source:/home/roma/projects/cprompt/trunk/src/cprtypes.cpp
 	"cprtypes.h"
 	<iostream>
 	<string.h>
@@ -128,12 +128,12 @@
 	"stack.h"
 	<fstream>
 
-1254423762 /home/roma/projects/cprompt/trunk/src/trees.h
+1256062705 /home/roma/projects/cprompt/trunk/src/trees.h
 	<iostream>
 	"lists.h"
 	"main.h"
 
-1255720187 /home/roma/projects/cprompt/trunk/src/main.h
+1255807359 /home/roma/projects/cprompt/trunk/src/main.h
 	<stdio.h>
 
 1249917608 /home/roma/projects/cprompt/trunk/src/cpr_parser.h
@@ -147,7 +147,7 @@
 	<fstream>
 	"cpr_parser.h"
 
-1255723634 source:/home/roma/projects/cprompt/trunk/src/cprapp.cpp
+1256063967 source:/home/roma/projects/cprompt/trunk/src/cprapp.cpp
 	<stdio.h>
 	<stdlib.h>
 	<new>
@@ -162,7 +162,7 @@
 
 1249917608 /home/roma/projects/cprompt/trunk/src/cprexec.h
 
-1255712493 source:/home/roma/projects/cprompt/trunk/src/main.cpp
+1256068202 source:/home/roma/projects/cprompt/trunk/src/main.cpp
 	<iostream>
 	<fstream>
 	<string.h>
@@ -172,7 +172,7 @@
 	"cprapp.h"
 	"cprtypes.h"
 
-1255762716 source:/home/roma/projects/cprompt/trunk/src/rpnlist.cpp
+1255807066 source:/home/roma/projects/cprompt/trunk/src/rpnlist.cpp
 	<stdlib.h>
 	"cprtypes.h"
 	"rpnlist.h"

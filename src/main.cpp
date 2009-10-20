@@ -34,40 +34,78 @@ CPRTreeNode::operator char*()
 
 CPRTreeNode* MakeCPRTreeNode(CPRTreeNodeType tp, char* text,char*text2,char*text3,char*text4)
 {
+    std::cout<<"MakeCPRTreeNode("<<tp<<", ";
+    std::cout<<((text==NULL)?"":text);
+    std::cout<<", ";
+    std::cout<<((text2==NULL)?"":text2);
+    std::cout<<", ";
+    std::cout<<((text3==NULL)?"":text3);
+    std::cout<<", ";
+    std::cout<<((text4==NULL)?"":text4);
+    std::cout<<")\n";
+
     CPRTreeNode* k=new CPRTreeNode;
-    if (text!=NULL)
-    {
-        k->text=new char[strlen(text)];
-        strcpy(k->text,text);
-    } else
-    {
-        k->text=NULL;
-    }
+
+    int i1=0,i2=0,i3=0,i4=0;
     k->tntType=tp;
-    if (text2!=NULL)
-    {
-        k->text2=new char[strlen(text2)];
-        strcpy(k->text2,text2);
-    } else
-    {
-        k->text2=NULL;
-    }
-    if (text3!=NULL)
-    {
-        k->text3=new char[strlen(text3)];
-        strcpy(k->text3,text3);
-    } else
-    {
-        k->text3=NULL;
-    }
+    char *s1,*s2,*s3,*s4;
     if (text4!=NULL)
     {
-        k->text4=new char[strlen(text4)];
-        strcpy(k->text4,text4);
+        //k->text4
+        i4=strlen(text4);
+        s4=new char[i4];
+        //int k=0; while(s4[k++]=text4[k]);
+//        strcpy(s4,text4);
     } else
     {
-        k->text4=NULL;
-    }
+        s4=NULL;
+    };
+    if (text3!=NULL)
+    {
+        //k->text3
+        i3=strlen(text3);
+        s3=new char[i3];
+        //int k=0; while(s3[k++]=text3[k]);
+//        strcpy(s3,text3);
+    } else
+    {
+        s3=NULL;
+    };
+    if (text2!=NULL)
+    {
+        //k->text2
+        i2=strlen(text2);
+        s2=new char[i2];
+        //int k=0; while(s2[k++]=text2[k]);
+//        strcpy(s2,text2);
+    } else
+    {
+        s2=NULL;
+    };
+    if (text!=NULL)
+    {
+        //k->text
+        i1=strlen(text);
+        s1=new char[i1];
+        //int k=0; while(s1[k++]=text[k]);
+//        strcpy(s1,text);
+    } else
+    {
+        s1=NULL;
+    };
+    std::cout<<"Lendths: "<<i1<<", "<<i2<<", "<<i3<<", "<<i4<<"\n";
+    int* q=new int;
+
+    if (i1!=0) strcpy(s1,text);
+    if (i2!=0) strcpy(s2,text2);
+    if (i3!=0) strcpy(s3,text3);
+    if (i4!=0) strcpy(s4,text4);
+    k->text=s1;
+    k->text2=s2;
+    k->text3=s3;
+    k->text4=s4;
+
+    q=new int;
     return k;
 }
 
@@ -82,7 +120,8 @@ void FillCPRTreeNode(CPRTreeNode* k,CPRTreeNodeType tp, char* text,char*text2,ch
     k->tntType=tp;
     if (text2!=NULL)
     {
-        k->text2=new char[strlen(text2)];
+        int i=strlen(text2);
+        k->text2=new char[i];
         strcpy(k->text2,text2);
     }
     if (text3!=NULL)

@@ -23,6 +23,7 @@ DTMain::DTMain(char* name)
 
 void DTMain::SetIdent(char* name)
 {
+    std::cout<<"DTMain: SetIdent\n";
 	if (sIdent!=NULL) delete[] sIdent;
 	sIdent=new char[strlen(name)];
 	strcpy(sIdent,name);
@@ -81,12 +82,14 @@ DTInt::DTInt(char*name,int d)
 
 void DTInt::dtmemalloc()
 {
+    std::cout<<"DTInt: dtmemalloc\n";
     dtmemfree();
 	pData=new (int);
 }
 
 void DTInt::dtmemfree()
 {
+    std::cout<<"DTInt: dtmemfree\n";
     if (pData!=NULL)
         delete (int*)pData;
     pData=NULL;
@@ -94,6 +97,7 @@ void DTInt::dtmemfree()
 
 char* DTInt::DTName()
 {
+    std::cout<<"DTInt: DTName\n";
 	char* rs=new char[strlen("signed int")];
 	strcpy(rs,"signed int");
 	return rs;
@@ -101,6 +105,7 @@ char* DTInt::DTName()
 
 char* DTInt::tostring()
 {
+    std::cout<<"DTInt: tostring\n";
     char* tmp=new char[100];
     sprintf(tmp,"%d",*(int*)pData);
 	char* rs=new char[strlen(tmp)];
@@ -134,12 +139,14 @@ DTUInt::DTUInt(char*name,unsigned int d)
 
 void DTUInt::dtmemalloc()
 {
+    std::cout<<"DTUInt::dtmemalloc\n";
     dtmemfree();
 	pData=new (unsigned int);
 }
 
 void DTUInt::dtmemfree()
 {
+    std::cout<<"DTUInt::dtmemfree()\n";
     if (pData!=NULL)
         delete (unsigned int*)pData;
 	pData=NULL;
@@ -147,6 +154,7 @@ void DTUInt::dtmemfree()
 
 char* DTUInt::DTName()
 {
+    std::cout<<"DTUInt::DTName()\n";
 	char* rs=new char[strlen("unsigned int")];
 	strcpy(rs,"unsigned int");
 	return rs;
@@ -154,6 +162,7 @@ char* DTUInt::DTName()
 
 char* DTUInt::tostring()
 {
+    std::cout<<"DTUInt::tostring()\n";
     char* tmp=new char[100];
     sprintf(tmp,"%d",*(int*)pData);
 	char* rs=new char[strlen(tmp)];
@@ -190,12 +199,14 @@ DTDouble::DTDouble(char*name,double d)
 
 void DTDouble::dtmemalloc()
 {
+    std::cout<<"DTDouble::dtmemalloc()\n";
     dtmemfree();
 	pData=new (double);
 }
 
 void DTDouble::dtmemfree()
 {
+    std::cout<<"DTDouble::dtmemfree()\n";
     if (pData!=NULL)
         delete (double*)pData;
     pData=NULL;
@@ -203,6 +214,7 @@ void DTDouble::dtmemfree()
 
 char* DTDouble::DTName()
 {
+    std::cout<<"DTDouble::DTName()\n";
 	char* rs=new char[strlen("double")];
 	strcpy(rs,"double");
 	return rs;
@@ -210,6 +222,7 @@ char* DTDouble::DTName()
 
 char* DTDouble::tostring()
 {
+    std::cout<<"DTDouble::tostring()\n";
     char* tmp=new char[100];
     sprintf(tmp,"%f",*(double*)pData);
 	char* rs=new char[strlen(tmp)];
@@ -246,12 +259,14 @@ DTFloat::DTFloat(char*name,float d)
 
 void DTFloat::dtmemalloc()
 {
+    std::cout<<"DTFloat::dtmemalloc()\n";
     dtmemfree();
 	pData=new (float);
 }
 
 void DTFloat::dtmemfree()
 {
+    std::cout<<"DTFloat::dtmemfree()\n";
     if (pData!=NULL)
         delete (float*)pData;
     pData=NULL;
@@ -259,6 +274,7 @@ void DTFloat::dtmemfree()
 
 char* DTFloat::DTName()
 {
+    std::cout<<"DTFloat::DTName()\n";
 	char* rs=new char[strlen("float")];
 	strcpy(rs,"float");
 	return rs;
@@ -266,6 +282,7 @@ char* DTFloat::DTName()
 
 char* DTFloat::tostring()
 {
+    std::cout<<"DTFloat::tostring()\n";
     char* tmp=new char[100];
     sprintf(tmp,"%f",*(float*)pData);
 	char* rs=new char[strlen(tmp)];
@@ -299,12 +316,14 @@ DTChar::DTChar(char*name,char d)
 
 void DTChar::dtmemalloc()
 {
+    std::cout<<"DTChar::dtmemalloc()\n";
     dtmemfree();
 	pData=new char;
 }
 
 void DTChar::dtmemfree()
 {
+    std::cout<<"DTChar::dtmemfree()\n";
     if (pData!=NULL)
         delete (char*)pData;
 	pData=NULL;
@@ -312,6 +331,7 @@ void DTChar::dtmemfree()
 
 char* DTChar::DTName()
 {
+    std::cout<<"DTChar::DTName()\n";
 	char* rs=new char[strlen("char")];
 	strcpy(rs,"char");
 	return rs;
@@ -319,6 +339,7 @@ char* DTChar::DTName()
 
 char* DTChar::tostring()
 {
+    std::cout<<"DTChar::tostring()\n";
 	char* rs=new char[2];
 	rs[0]=*((char*)pData);
 	rs[1]=0;
@@ -372,12 +393,14 @@ DTPtr::DTPtr(char*name,char* tp)
 
 void DTPtr::dtmemalloc()
 {
+    std::cout<<"DTPtr::dtmemalloc()\n";
     dtmemfree();
 	pData=new (void**);
 }
 
 void DTPtr::dtmemfree()
 {
+    std::cout<<"DTPtr::dtmemfree()\n";
     if (pData!=NULL)
         delete (void**)pData;
 	pData=NULL;
@@ -385,6 +408,7 @@ void DTPtr::dtmemfree()
 
 char* DTPtr::DTName()
 {
+    std::cout<<"DTPtr::DTName()\n";
 	char* rs=new char[strlen("void*")];
 	strcpy(rs,"void*");
 	return rs;
@@ -392,6 +416,7 @@ char* DTPtr::DTName()
 
 char* DTPtr::tostring()
 {
+    std::cout<<"DTPtr::tostring()\n";
     char* rs;
     if (strcmp(_tp,"char")==0)
     {
@@ -428,12 +453,14 @@ DTArray::DTArray(char* name,int sz,int c,char* tp) //with memalloc
 
 void DTArray::dtmemalloc()
 {
+    std::cout<<"DTArray::dtmemalloc()\n";
     dtmemfree();
 	pData=new char[size_one*count];
 }
 
 void DTArray::dtmemfree()
 {
+    std::cout<<"DTArray::dtmemfree()\n";
     if (pData!=NULL)
         delete[] pData;
 	pData=NULL;
@@ -441,6 +468,7 @@ void DTArray::dtmemfree()
 
 char* DTArray::DTName()
 {
+    std::cout<<"DTArray::DTName()\n";
 	char* rs;
 	sprintf(rs,"array[sz:%i;cnt:%i]",size_one,count);
 	return rs;
@@ -448,6 +476,7 @@ char* DTArray::DTName()
 
 bool DTArray::FillElement(int n,void* buf)
 {
+    std::cout<<"DTArray::FillElement("<<n<<",buf)\n";
     if (n>=count) return false;
     void* p=(char*)pData+(n*size_one);
     memcpy(p,buf,size_one);
@@ -456,12 +485,14 @@ bool DTArray::FillElement(int n,void* buf)
 
 void* DTArray::GetElement(int n)
 {
+    std::cout<<"DTArray::GetElement("<<n<<")\n";
     void* p=(char*)pData+(n*size_one);
     return *(void**)(p);
 }
 
 char* DTArray::tostring()
 {
+    std::cout<<"DTArray::tostring()\n";
     std::string st;
     DTVar* o;
     for(int i=0;i<count;i++)
@@ -480,8 +511,8 @@ char* DTArray::tostring()
 
 DTVar* CalculateSum2op(DTMain* a,DTMain* b);
 DTVar* CalculateDiff2op(DTMain* a,DTMain* b);
-//DTVar* CalculateMul2op(DTMain* a,DTMain* b);
-//DTVar* CalculateDiv2op(DTMain* a,DTMain* b);
+DTVar* CalculateMul2op(DTMain* a,DTMain* b);
+DTVar* CalculateDiv2op(DTMain* a,DTMain* b);
 
 
 DTVar* CalculateAct2op(DTMain* a,DTMain* b,char c1,char c2)
@@ -493,6 +524,14 @@ DTVar* CalculateAct2op(DTMain* a,DTMain* b,char c1,char c2)
     if ((c1=='-')&&(c2==' '))
     {
         return CalculateDiff2op(a,b);
+    };
+    if ((c1=='*')&&(c2==' '))
+    {
+        return CalculateMul2op(a,b);
+    };
+    if ((c1=='/')&&(c2==' '))
+    {
+        return CalculateDiv2op(a,b);
     };
 }
 
@@ -530,15 +569,21 @@ DTVar* CalculateDiff2op(DTMain* a,DTMain* b)
      };
 }
 
-/*DTVar* CalculateMul2op(DTMain* a,DTMain* b)
+DTVar* CalculateMul2op(DTMain* a,DTMain* b)
 {
      //integer
      if ((a->typeoftype()==b->typeoftype())&&(a->typeoftype()==1))
      {
-         DTInt* k=new DTBigIntegerType(NULL, ((DTIntegerTypes*)a)->toint()-((DTIntegerTypes*)b)->toint());
+         DTInt* k=new DTBigIntegerType(NULL, ((DTIntegerTypes*)a)->toint()*((DTIntegerTypes*)b)->toint());
          return DTVar::CreateNativeDTVarFromDTMain(k);
      };
      //float
+     if (((a->typeoftype()==2)&&((b->typeoftype()==1)||(b->typeoftype()==2)))||
+         ((b->typeoftype()==2)&&((a->typeoftype()==1)||(a->typeoftype()==2))))
+     {
+         DTBigFloatType* k=new DTBigFloatType(NULL, ((DTFloatTypes*)a)->tofloat()*((DTFloatTypes*)b)->tofloat());
+         return DTVar::CreateNativeDTVarFromDTMain(k);
+     };
 }
 
 DTVar* CalculateDiv2op(DTMain* a,DTMain* b)
@@ -546,11 +591,17 @@ DTVar* CalculateDiv2op(DTMain* a,DTMain* b)
      //integer
      if ((a->typeoftype()==b->typeoftype())&&(a->typeoftype()==1))
      {
-         DTInt* k=new DTBigIntegerType(NULL, ((DTIntegerTypes*)a)->toint()-((DTIntegerTypes*)b)->toint());
+         DTInt* k=new DTBigIntegerType(NULL, ((DTIntegerTypes*)a)->toint()/((DTIntegerTypes*)b)->toint());
          return DTVar::CreateNativeDTVarFromDTMain(k);
      };
      //float
-}*/
+     if (((a->typeoftype()==2)&&((b->typeoftype()==1)||(b->typeoftype()==2)))||
+         ((b->typeoftype()==2)&&((a->typeoftype()==1)||(a->typeoftype()==2))))
+     {
+         DTBigFloatType* k=new DTBigFloatType(NULL, ((DTFloatTypes*)a)->tofloat()/((DTFloatTypes*)b)->tofloat());
+         return DTVar::CreateNativeDTVarFromDTMain(k);
+     };
+}
 
 
 void* DoIntInitializeActions(int t,char* sDT,char* sName, rpnlist* data,DTVar* k)
@@ -567,8 +618,14 @@ void* DoIntInitializeActions(int t,char* sDT,char* sName, rpnlist* data,DTVar* k
         {
             ag::stack<DTVar*>* v=CalculateRPN(data);
             DTMain* h=(DTMain*)(v->pop()->T);
-            if (h->typeoftype()==1)
-                ((DTIntegerTypes*)(k->T))->setint(((DTIntegerTypes*)h)->toint());
+            if(h->typeoftype()<=2)
+            {
+                switch(h->typeoftype())
+                {
+                    case 1:((DTIntegerTypes*)(k->T))->setint(((DTIntegerTypes*)h)->toint());break;
+                    case 2:((DTIntegerTypes*)(k->T))->setint(((DTFloatTypes*)h)->tofloat());break;
+                }
+            }
             else
             {
                 std::string u="Incompatible types: <";

@@ -102,12 +102,13 @@
 			<Option target="Debug" />
 			<Option target="Release" />
 		</Unit>
-		<Unit filename="src/test.cp">
-			<Option target="other" />
-		</Unit>
 		<Unit filename="src/trees.h">
 			<Option target="Debug" />
 			<Option target="Release" />
+		</Unit>
+		<Unit filename="test.c">
+			<Option compilerVar="CC" />
+			<Option target="other" />
 		</Unit>
 		<Extensions>
 			<code_completion />

@@ -1,5 +1,5 @@
-signed int main(int argc,char* argv[])
+signed int main(signed int argc,char* argv[])
 {
-    double k1=67;
+    unsigned int k1=1;
     #TEST out k1
 }
