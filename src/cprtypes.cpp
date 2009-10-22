@@ -2,7 +2,6 @@
 #include <iostream>
 #include <string.h>
 #include <stdlib.h>
-#include <string.h>
 
 //class DTMain
 
@@ -31,27 +30,31 @@ void DTMain::SetIdent(char* name)
 
 char* DTMain::DTFullName()
 {
+	std::string a;
 	char* n=DTName();
+	a+=n;
 	std::cout<<"DTFullName():\n";
 	std::cout<<"DTName()="<<n<<"\n";
-	int sIdLen=0;
-	if (sIdent==NULL)    std::cout<<"sIdent=NULL\n";
+
+	if (sIdent==NULL)
+        std::cout<<"sIdent=NULL\n";
     else
 	{
         std::cout<<"sIdent="<<sIdent<<"\n";
-        sIdLen=strlen(sIdent);
 	}
-	char* a=new char[strlen(n)+1+sIdLen];
+	//char* a=new char[strlen(n)+1+sIdLen];
 	if (sIdent!=NULL)
 	{
-	    strcpy(a,n);
-        strcat(a," ");
-        strcat(a,sIdent);
-	}else
-	{
-        strcpy(a,n);
-	}
-	return a;
+	    //strcpy(a,n);
+        a+=" ";
+        //strcat(a," ");
+        a+=sIdent;
+        //strcat(a,sIdent);
+	};
+	char* ar=new char[a.size()+1];
+	strcpy(ar,a.c_str());
+	ar[a.size()]=0;
+	return ar;
 }
 
 //class DTInt
@@ -98,8 +101,9 @@ void DTInt::dtmemfree()
 char* DTInt::DTName()
 {
     std::cout<<"DTInt: DTName\n";
-	char* rs=new char[strlen("signed int")];
+	char* rs=new char[strlen("signed int")+1];
 	strcpy(rs,"signed int");
+	rs[strlen("signed int")]=0;
 	return rs;
 }
 
@@ -154,9 +158,14 @@ void DTUInt::dtmemfree()
 
 char* DTUInt::DTName()
 {
+//    std::cout<<"DTInt: DTName\n";
+//	char* rs=new char[strlen("signed int")];
+//	strcpy(rs,"signed int");
+//	return rs;
     std::cout<<"DTUInt::DTName()\n";
-	char* rs=new char[strlen("unsigned int")];
+	char* rs=new char[13];
 	strcpy(rs,"unsigned int");
+	rs[12]=0;
 	return rs;
 }
 
@@ -164,10 +173,10 @@ char* DTUInt::tostring()
 {
     std::cout<<"DTUInt::tostring()\n";
     char* tmp=new char[100];
-    sprintf(tmp,"%d",*(int*)pData);
-	char* rs=new char[strlen(tmp)];
+    sprintf(tmp,"%u",(*(int*)pData));
+	char* rs=new char[strlen(tmp)+1];
 	strcpy(rs,tmp);
-	delete[] tmp;
+	rs[strlen(tmp)]=0;
 	return rs;
 }
 
@@ -215,8 +224,9 @@ void DTDouble::dtmemfree()
 char* DTDouble::DTName()
 {
     std::cout<<"DTDouble::DTName()\n";
-	char* rs=new char[strlen("double")];
+	char* rs=new char[strlen("double")+1];
 	strcpy(rs,"double");
+	rs[strlen("double")]=0;
 	return rs;
 }
 
@@ -275,8 +285,9 @@ void DTFloat::dtmemfree()
 char* DTFloat::DTName()
 {
     std::cout<<"DTFloat::DTName()\n";
-	char* rs=new char[strlen("float")];
+	char* rs=new char[strlen("float")+1];
 	strcpy(rs,"float");
+	rs[strlen("float")]=0;
 	return rs;
 }
 
@@ -332,8 +343,9 @@ void DTChar::dtmemfree()
 char* DTChar::DTName()
 {
     std::cout<<"DTChar::DTName()\n";
-	char* rs=new char[strlen("char")];
+	char* rs=new char[strlen("char")+1];
 	strcpy(rs,"char");
+	rs[strlen("char")]=0;
 	return rs;
 }
 
@@ -409,8 +421,9 @@ void DTPtr::dtmemfree()
 char* DTPtr::DTName()
 {
     std::cout<<"DTPtr::DTName()\n";
-	char* rs=new char[strlen("void*")];
+	char* rs=new char[strlen("void*")+1];
 	strcpy(rs,"void*");
+	rs[strlen("void*")]=0;
 	return rs;
 }
 

@@ -220,6 +220,7 @@ void CPRApplication::BuildTree()
 //                    tp=new ag::tree<CPRTreeNode*>(currparent,C);
 //                    FillCPRTreeNode(C,tntDeclareVar,str1,str2,str3);
                     CPRTreeNode* C=MakeCPRTreeNode(tntDeclareVar,str1,str2,str3);
+                    tp=new ag::tree<CPRTreeNode*>(currparent,C);
                 }else
                     tp=new ag::tree<CPRTreeNode*>(currparent,MakeCPRTreeNode(tntDeclareVar,str1,str2,NULL));
                 q=new int;
