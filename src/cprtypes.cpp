@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string.h>
 #include <stdlib.h>
+#include "rpnlist.h"
 
 //class DTMain
 
@@ -55,6 +56,12 @@ char* DTMain::DTFullName()
 	strcpy(ar,a.c_str());
 	ar[a.size()]=0;
 	return ar;
+}
+
+void DTMain::assign(DTMain* u)
+{
+    pData=u->pData;
+    size=u->size;
 }
 
 //class DTInt
@@ -526,6 +533,7 @@ DTVar* CalculateSum2op(DTMain* a,DTMain* b);
 DTVar* CalculateDiff2op(DTMain* a,DTMain* b);
 DTVar* CalculateMul2op(DTMain* a,DTMain* b);
 DTVar* CalculateDiv2op(DTMain* a,DTMain* b);
+DTVar* CalculateAssignation(DTMain* a,DTMain* b);
 
 
 DTVar* CalculateAct2op(DTMain* a,DTMain* b,char c1,char c2)
@@ -546,6 +554,26 @@ DTVar* CalculateAct2op(DTMain* a,DTMain* b,char c1,char c2)
     {
         return CalculateDiv2op(a,b);
     };
+    if ((c1=='=')&&(c2==' '))
+    {
+        return CalculateAssignation(a,b);
+    };
+}
+
+DTVar* CalculateAssignation(DTMain* a,DTMain* b)
+{
+     if ((a->typeoftype()==b->typeoftype())&&(b->typeoftype()==1))
+     {
+         a->dtmemfree();
+         rpnlist* rl=new rpnlist;
+         RPNStackElement* rse=new RPNStackElement;
+         rse->tp=rsetNum;
+         rse->d=b;
+         rl->add_tail(rse);
+         DTVar* dv=ParseDataTypeString(b->DTName(),a->sIdent,rl);
+         a->assign(b);
+         std::cout<<"CalculateAssignation(): a="<<a->tostring()<<"\n";
+     };
 }
 
 DTVar* CalculateSum2op(DTMain* a,DTMain* b)

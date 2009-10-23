@@ -44,6 +44,7 @@ class DTMain
         DTMain(char* name);
         void SetIdent(char* name);
         char* DTFullName();
+        void assign(DTMain* u);
 
         virtual void dtmemalloc()=0;
         virtual void dtmemfree()=0;

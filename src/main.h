@@ -11,6 +11,7 @@ enum CPRTreeNodeType
         tntDeclareVar=1,
         tntFunction=2,
         tntDeclareFunc=3,
+        tntExpression=4,
         tntDirective=98,
         tntVarOutput=99
     };
@@ -64,6 +65,6 @@ struct CPRTreeNode
     operator char*();
 };
 
-CPRTreeNode* MakeCPRTreeNode(CPRTreeNodeType tp=tntNone, char* text=NULL,char*text2=NULL,char*text3=NULL,char*text4=NULL);
+CPRTreeNode* MakeCPRTreeNode(CPRTreeNodeType tp=tntNone, char* text=NULL,char*text2=NULL,char*text3=NULL,char*text4=NULL,void* rx1=NULL,void* rx2=NULL);
 void FillCPRTreeNode(CPRTreeNode* k,CPRTreeNodeType tp=tntNone, char* text=NULL,char*text2=NULL,char*text3=NULL,char*text4=NULL);
 #endif // MAIN_H_INCLUDED

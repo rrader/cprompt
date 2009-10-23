@@ -5,17 +5,7 @@
 
 extern CPRApplication* AppV;
 
-enum RPNStackElementType {
-            rsetNum=0,
-            rsetStr=1,
-            rsetAct=2
-            };
 
-struct RPNStackElement
-{
-    RPNStackElementType tp;
-    void* d;
-};
 
 const char* sOperators=",=?:|&^!<>+-*/%~";
 const char* sOperatorsLeft  = ", ||&&| ^ & ==!=< <==>> >><<+ - * / % ";
@@ -367,11 +357,13 @@ ag::stack<DTVar*>* CalculateRPN(rpnlist* rpn)
                 DTVar* v;
                 int r=st->count();
                 std::cout<<r<<";\n";
+                if (operprior((char*)m->data->d)[0],(char*)m->data->d)[1]))
                 if (r>1)
                   v=CalculateAct2op((DTMain*)(st->pop()->T),(DTMain*)(st->pop()->T),((char*)m->data->d)[0],((char*)m->data->d)[1]);
                 else
                   v=CalculateAct2op(&DTInt(NULL,0),(DTMain*)(st->pop()->T),((char*)m->data->d)[0],((char*)m->data->d)[1]);
                 st->push(v);
+                std::cout<<"    "<<((*((DTMain*)j->T)).tostring())<<"\n";
             }
             if(m->data->tp==rsetStr)
             {
@@ -379,7 +371,7 @@ ag::stack<DTVar*>* CalculateRPN(rpnlist* rpn)
                     if (j!=NULL)
                     {
                         st->push(j);
-                        std::cout<<"    "<<((*((DTMain*)j->T)).tostring())<<"\n";;
+                        std::cout<<"    "<<((*((DTMain*)j->T)).tostring())<<"\n";
                     }else
                     {
                         char* s;

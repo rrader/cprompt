@@ -12,7 +12,17 @@ struct DTVar;
 #include "stringlist.h"
 #include "cprapp.h"
 
-struct RPNStackElement;
+enum RPNStackElementType {
+            rsetNum=0,
+            rsetStr=1,
+            rsetAct=2
+            };
+
+struct RPNStackElement
+{
+    RPNStackElementType tp;
+    void* d;
+};
 
 class rpnlist : public ag::list<RPNStackElement*>{};
 

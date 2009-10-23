@@ -129,6 +129,7 @@ char* CPRApplication::ReadToEOLN(ag::list<CPRTokenInfo>::member* p)//!!!!!!!!!!!
     (*p)=(*p)->prev;
     return m;
 }
+
 void CPRApplication::BuildTree()
 {
     std::cout<<"CPRApplication::BuildTree()\n";
@@ -145,21 +146,21 @@ void CPRApplication::BuildTree()
     int* q;
     int iSz;
     int iSz2;
-    int *l;
-    for(ag::list<CPRTokenInfo>::member p=aTokens.head;p!=NULL;p=p->next)
+
+    for(ag::list<CPRTokenInfo>::member p=aTokens.head;(p!=NULL)&&(p->data.petCurrType!=petEOF);p=p->next)
     {
         //l=new int;
         switch (state)
         {
             case 0://new expression
-                std::cout<<"(s0) start\n";
+                std::cout<<"(s0) start: "<<p->data.sCurrText<<", "<<p->data.petCurrType<<"\n";
                 if (p->data.sCurrText[0]=='#')
                 {
 					p=p->next;
 					str1=ReadToEOLN(&p);
                     std::cout<<"(s0): directive: "<<str1<<"\n";
 					tp=new ag::tree<CPRTreeNode*>(currparent,MakeCPRTreeNode(tntDirective,str1));
-                }
+                }else
 				/*if (p->data.sCurrText[0]=='@')
 				{
 					p=p->next;
@@ -171,19 +172,24 @@ void CPRApplication::BuildTree()
                     tp=new ag::tree<CPRTreeNode*>(currparent,MakeCPRTreeNode(tntNone));
                     currparent=tp;
                     std::cout<<"(s0): new level created && level down\n";
-                }
+                }else
                 if (p->data.sCurrText[0]=='}')
                 {
                     currparent=currparent->parent;
                     std::cout<<"(s0): level up\n";
-                }
-
+                }else
                 if (IsTypename(p)) // it is typename
                 {
                     str1=ReadTypename(p);
                     state=1;
                     std::cout<<"(s0): '"<<str1<<"' typename detected\n";
-                }
+                }else
+                {
+                    str1=ReadToSymbol(p,';');
+                    std::cout<<"(s0): '"<<str1<<"' expression\n";
+                    tp=new ag::tree<CPRTreeNode*>(currparent,MakeCPRTreeNode(tntExpression,str1));
+                    tp->data->r1=MakePostfixFromInfix(str1);
+                };
             break;
 
             case 1://<typename>_
@@ -296,6 +302,8 @@ void CPRApplication::BuildTree()
                 }
                 state=0;
             break;
+        case 5:
+            break;
         }
         //std::cout << p->data.sCurrText << ": " << p->data.petCurrType << "; ";
     }
@@ -369,6 +377,11 @@ void CPRApplication::ExecTree(ag::tree<CPRTreeNode*>* T)
                 }
             case tntVarOutput:
                 {
+                    break;
+                }
+            case tntExpression:
+                {
+                    CalculateRPN((rpnlist*)p->data->data->r1);
                     break;
                 }
             case tntDirective:

@@ -32,7 +32,7 @@ CPRTreeNode::operator char*()
     return ss;
 }
 
-CPRTreeNode* MakeCPRTreeNode(CPRTreeNodeType tp, char* text,char*text2,char*text3,char*text4)
+CPRTreeNode* MakeCPRTreeNode(CPRTreeNodeType tp, char* text,char*text2,char*text3,char*text4,void* rx1,void* rx2)
 {
     std::cout<<"MakeCPRTreeNode("<<tp<<", ";
     std::cout<<((text==NULL)?"":text);
@@ -104,6 +104,9 @@ CPRTreeNode* MakeCPRTreeNode(CPRTreeNodeType tp, char* text,char*text2,char*text
     k->text2=s2;
     k->text3=s3;
     k->text4=s4;
+
+    k->r1=rx1;
+    k->r2=rx2;
 
     q=new int;
     return k;
