@@ -154,13 +154,13 @@ template<typename T>
   int list<T>::count()
         {
             member p=head;
-            int i;
+            int i=0;
             while (p!=NULL)
             {
                 i++;
                 p=p->next;
             }
-            return i-1;
+            return i;
         };
 
 template<typename T>

@@ -98,7 +98,7 @@
 	"lists.h"
 	"rpnlist.h"
 
-1256157169 /home/roma/projects/cprompt/trunk/src/lists.h
+1256242457 /home/roma/projects/cprompt/trunk/src/lists.h
 	<cstdlib>
 
 1256157169 /home/roma/projects/cprompt/trunk/src/rpnlist.h
@@ -161,7 +161,7 @@
 
 1256157169 /home/roma/projects/cprompt/trunk/src/cprexec.h
 
-1256236650 source:/home/roma/projects/cprompt/trunk/src/main.cpp
+1256242126 source:/home/roma/projects/cprompt/trunk/src/main.cpp
 	<iostream>
 	<fstream>
 	<string.h>
@@ -171,7 +171,7 @@
 	"cprapp.h"
 	"cprtypes.h"
 
-1256157169 source:/home/roma/projects/cprompt/trunk/src/rpnlist.cpp
+1256242589 source:/home/roma/projects/cprompt/trunk/src/rpnlist.cpp
 	<stdlib.h>
 	"cprtypes.h"
 	"rpnlist.h"

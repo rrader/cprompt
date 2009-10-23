@@ -141,10 +141,6 @@ void FillCPRTreeNode(CPRTreeNode* k,CPRTreeNodeType tp, char* text,char*text2,ch
 int main(int argc,char* argv[])
 {
 //    MakePostfixFromInfix("a=sin(8+2*9+bn)");
-    char tmp[100];
-    unsigned int Y=-1;
-    sprintf(tmp,"%d",Y);
-    std::cout<<"UUUUUUU: "<<Y<<"\n";
     std::cout<<"Sizeof DTVar: "<<sizeof(DTVar)<<"\n";
     ::argc=argc;
 	::argv=argv;

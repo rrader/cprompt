@@ -364,7 +364,13 @@ ag::stack<DTVar*>* CalculateRPN(rpnlist* rpn)
             if(m->data->tp==rsetAct)
             {
                 std::cout<<"    "<<((char*)m->data->d)[0]<<((char*)m->data->d)[1]<<"\n";
-                DTVar* v=CalculateAct2op((DTMain*)(st->pop()->T),(DTMain*)(st->pop()->T),((char*)m->data->d)[0],((char*)m->data->d)[1]);
+                DTVar* v;
+                int r=st->count();
+                std::cout<<r<<";\n";
+                if (r>1)
+                  v=CalculateAct2op((DTMain*)(st->pop()->T),(DTMain*)(st->pop()->T),((char*)m->data->d)[0],((char*)m->data->d)[1]);
+                else
+                  v=CalculateAct2op(&DTInt(NULL,0),(DTMain*)(st->pop()->T),((char*)m->data->d)[0],((char*)m->data->d)[1]);
                 st->push(v);
             }
             if(m->data->tp==rsetStr)
