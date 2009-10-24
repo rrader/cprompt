@@ -531,10 +531,10 @@ char* DTArray::tostring()
 
 DTVar* CalculateSum2op(DTMain* a,DTMain* b);
 DTVar* CalculateDiff2op(DTMain* a,DTMain* b);
+DTVar* CalculateDiff1op(DTMain* a);
 DTVar* CalculateMul2op(DTMain* a,DTMain* b);
 DTVar* CalculateDiv2op(DTMain* a,DTMain* b);
 DTVar* CalculateAssignation(DTMain* a,DTMain* b);
-
 
 DTVar* CalculateAct2op(DTMain* a,DTMain* b,char c1,char c2)
 {
@@ -557,6 +557,14 @@ DTVar* CalculateAct2op(DTMain* a,DTMain* b,char c1,char c2)
     if ((c1=='=')&&(c2==' '))
     {
         return CalculateAssignation(a,b);
+    };
+}
+
+DTVar* CalculateAct1op(DTMain* a,char c1,char c2)
+{
+    if ((c1=='-')&&(c2=='u'))
+    {
+        return CalculateDiff1op(a);
     };
 }
 
@@ -606,6 +614,22 @@ DTVar* CalculateDiff2op(DTMain* a,DTMain* b)
          ((b->typeoftype()==2)&&((a->typeoftype()==1)||(a->typeoftype()==2))))
      {
          DTBigFloatType* k=new DTBigFloatType(NULL, ((DTFloatTypes*)a)->tofloat()-((DTFloatTypes*)b)->tofloat());
+         return DTVar::CreateNativeDTVarFromDTMain(k);
+     };
+}
+
+DTVar* CalculateDiff1op(DTMain* a)
+{
+     //integer
+     if (a->typeoftype()==1)
+     {
+         DTInt* k=new DTBigIntegerType(NULL, -((DTIntegerTypes*)a)->toint());
+         return DTVar::CreateNativeDTVarFromDTMain(k);
+     };
+     //float
+     if (a->typeoftype()==2)
+     {
+         DTBigFloatType* k=new DTBigFloatType(NULL, -((DTFloatTypes*)a)->tofloat());
          return DTVar::CreateNativeDTVarFromDTMain(k);
      };
 }

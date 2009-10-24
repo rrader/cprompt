@@ -4,40 +4,46 @@
 	<File name="src/cpr_parser.cpp" open="0" top="0" tabpos="0">
 		<Cursor position="598" topLine="36" />
 	</File>
+	<File name="src/cpr_parser.h" open="0" top="0" tabpos="0">
+		<Cursor position="304" topLine="0" />
+	</File>
 	<File name="src/cprapp.cpp" open="1" top="0" tabpos="5">
-		<Cursor position="11399" topLine="334" />
+		<Cursor position="4427" topLine="140" />
 	</File>
 	<File name="src/cprapp.h" open="1" top="0" tabpos="6">
-		<Cursor position="23" topLine="0" />
+		<Cursor position="876" topLine="5" />
 	</File>
 	<File name="src/cprexec.h" open="0" top="0" tabpos="0">
 		<Cursor position="81" topLine="0" />
 	</File>
-	<File name="src/cprtypes.cpp" open="1" top="0" tabpos="11">
-		<Cursor position="11208" topLine="556" />
+	<File name="src/cprtypes.cpp" open="1" top="0" tabpos="9">
+		<Cursor position="10917" topLine="565" />
 	</File>
 	<File name="src/cprtypes.h" open="1" top="0" tabpos="7">
-		<Cursor position="2471" topLine="62" />
+		<Cursor position="736" topLine="21" />
 	</File>
-	<File name="src/lists.h" open="1" top="0" tabpos="9">
+	<File name="src/lists.h" open="0" top="0" tabpos="9">
 		<Cursor position="3389" topLine="132" />
 	</File>
-	<File name="src/main.cpp" open="1" top="1" tabpos="1">
-		<Cursor position="2937" topLine="127" />
+	<File name="src/main.cpp" open="1" top="0" tabpos="1">
+		<Cursor position="3084" topLine="118" />
 	</File>
 	<File name="src/main.h" open="1" top="0" tabpos="8">
-		<Cursor position="129" topLine="2" />
+		<Cursor position="554" topLine="26" />
 	</File>
-	<File name="src/rpnlist.cpp" open="1" top="0" tabpos="3">
-		<Cursor position="10452" topLine="350" />
+	<File name="src/rpnlist.cpp" open="1" top="1" tabpos="3">
+		<Cursor position="2895" topLine="247" />
 	</File>
 	<File name="src/rpnlist.h" open="1" top="0" tabpos="2">
-		<Cursor position="507" topLine="0" />
+		<Cursor position="669" topLine="0" />
 	</File>
-	<File name="src/stack.h" open="1" top="0" tabpos="10">
+	<File name="src/stack.h" open="0" top="0" tabpos="10">
 		<Cursor position="360" topLine="0" />
 	</File>
+	<File name="src/stringlist.h" open="0" top="0" tabpos="0">
+		<Cursor position="1213" topLine="12" />
+	</File>
 	<File name="test.c" open="1" top="0" tabpos="4">
-		<Cursor position="71" topLine="0" />
+		<Cursor position="81" topLine="0" />
 	</File>
 </CodeBlocks_layout_file>

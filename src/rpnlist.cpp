@@ -30,6 +30,8 @@ const char* sOperPrior[PRIOR_COUNT]={
                 "?:" //13
             };
 
+char operprior(char o,char n);
+
 bool isoper1(char o)
 {
     char k;
@@ -41,14 +43,7 @@ bool isoper1(char o)
 
 char isoper(char o,char n)
 {
-    if (isoper1(o))
-    {
-        if (isoper1(n))
-            return 2;
-        else
-            return 1;
-    }
-    return 0;
+    return (operprior(o,n)==0)?((isoper1(o))?1:0):2;
 }
 
 char isoperoneof(char o,char n,char* str)
@@ -75,6 +70,63 @@ char operprior(char o,char n)
     return 0;
 };
 
+//
+//rpnlist* MakePostfixFromInfix2(char* infix)
+//{
+//    int i=0,j;
+//    char k,k2;
+//    int s_len=0;
+//    char s[256];
+//    ag::stack<RPNStackElement*> stack;
+//    rpnlist* res=new rpnlist;
+//    RPNStackElement* se;
+//    while (k=infix[i])
+//    {
+//        j=i;
+//        s_len=1;
+//        s[0]='i';
+//        bool isfloat=false;
+//        while ( (((k=infix[i])=='.')&&(!isfloat))||(isdigit(k=infix[i])) )
+//        {
+//            i++;
+//            s[s_len++]=k;
+//            if (k=='.')
+//            {
+//                isfloat=true;
+//                s[0]='f';
+//            }
+//        }
+//        s_len--;
+//        i=j+s_len-((s_len==0) ? 0 : 1);
+//        s[s_len+1]=0;
+//        if (s_len!=0)
+//        {
+//            //NUMBER
+//            std::cout<<"   num: "<<s<<"\n";
+//            se=new RPNStackElement;
+//            se->tp=rsetNum;
+//            if (isfloat)
+//                se->d=new DTBigFloatType(NULL,atof(s+1));
+//            else
+//                se->d=new DTBigIntegerType(NULL,atoi(s+1));
+//            res->add_tail(se);
+//        }
+//
+//        j=i;
+//        s_len=0;
+//        bool b=false;
+//        k=infix[i++];
+//        while ( isalpha(k)||((isdigit(k))&&(b))||(k=='_') )
+//        {
+//            if (!b) b=isalpha(k);
+//            s[s_len++]=k;
+//            k=infix[i++];
+//        }
+//        i=j+s_len-((s_len==0) ? 0 : 1);
+//        s[s_len]=0;
+//    }
+//}
+
 rpnlist* MakePostfixFromInfix(char* infix)
 {
     int i=0,j;
@@ -87,6 +139,7 @@ rpnlist* MakePostfixFromInfix(char* infix)
     rpnlist* res=new rpnlist;
     rpnlist* _res=new rpnlist;
     RPNStackElement* se;
+    bool last_num=false;
     while(k=infix[i])
     {
         j=i;
@@ -108,6 +161,7 @@ rpnlist* MakePostfixFromInfix(char* infix)
         s[s_len+1]=0;
         if (s_len!=0)
         {
+            last_num=true;
             se=new RPNStackElement;
             se->tp=rsetNum;
             se->d=new char[strlen(s)];
@@ -119,9 +173,9 @@ rpnlist* MakePostfixFromInfix(char* infix)
             se=new RPNStackElement;
             se->tp=rsetNum;
             if (isfloat)
-                se->d=new DTDouble(NULL,atof(s+1));
+                se->d=new DTBigFloatType(NULL,atof(s+1));
             else
-                se->d=new DTInt(NULL,atoi(s+1));
+                se->d=new DTBigIntegerType(NULL,atoi(s+1));
             _res->add_tail(se);
         }
 
@@ -141,6 +195,7 @@ rpnlist* MakePostfixFromInfix(char* infix)
         if ((infix[i+1]=='(')&&(s_len!=0))
         {
          // function
+            last_num=false;
             se=new RPNStackElement;
             se->tp=rsetStr;
             ss=new char[255];
@@ -162,6 +217,7 @@ rpnlist* MakePostfixFromInfix(char* infix)
         if (s_len!=0)
         {
             //variable
+            last_num=true;
             se=new RPNStackElement;
             se->tp=rsetStr;
             ss=new char[255];
@@ -180,6 +236,7 @@ rpnlist* MakePostfixFromInfix(char* infix)
 
         if ((k==',')||(k==')'))
         {
+            last_num=false;
             while(!stack.empty())
             {
                 se=(RPNStackElement*)stack.tail->data;
@@ -239,6 +296,7 @@ rpnlist* MakePostfixFromInfix(char* infix)
 
         if (k=='(')
         {
+            last_num=false;
             se=new RPNStackElement;
             se->tp=rsetAct;
             ss=new char[3];
@@ -307,10 +365,11 @@ rpnlist* MakePostfixFromInfix(char* infix)
             se->tp=rsetAct;
             ss=new char[3];
             ss[0]=k;
-            ss[1]=k2;
+            ss[1]=last_num?k2:'u';
             ss[2]=0;
             se->d=ss;
             stack.push(se);
+            last_num=false;
         }
 
         i++;
@@ -357,13 +416,12 @@ ag::stack<DTVar*>* CalculateRPN(rpnlist* rpn)
                 DTVar* v;
                 int r=st->count();
                 std::cout<<r<<";\n";
-                if (operprior((char*)m->data->d)[0],(char*)m->data->d)[1]))
-                if (r>1)
+                if (((char*)m->data->d)[1]!='u')
                   v=CalculateAct2op((DTMain*)(st->pop()->T),(DTMain*)(st->pop()->T),((char*)m->data->d)[0],((char*)m->data->d)[1]);
                 else
-                  v=CalculateAct2op(&DTInt(NULL,0),(DTMain*)(st->pop()->T),((char*)m->data->d)[0],((char*)m->data->d)[1]);
+                  v=CalculateAct1op((DTMain*)(st->pop()->T),((char*)m->data->d)[0],((char*)m->data->d)[1]);
                 st->push(v);
-                std::cout<<"    "<<((*((DTMain*)j->T)).tostring())<<"\n";
+                //std::cout<<"    "<<((*((DTMain*)j->T)).tostring())<<"\n";
             }
             if(m->data->tp==rsetStr)
             {

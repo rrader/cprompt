@@ -194,4 +194,5 @@ typedef DTDouble DTBigFloatType;
 
 DTVar* ParseDataTypeString(char* sDT,char* sName, rpnlist* data);//rpnlist&
 DTVar* CalculateAct2op(DTMain* a,DTMain* b,char c1,char c2);
+DTVar* CalculateAct1op(DTMain* a,char c1,char c2);
 #endif // CPRTYPES_INCLUDED

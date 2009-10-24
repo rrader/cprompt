@@ -1,6 +1,7 @@
 signed int main(signed int argc,char* argv[])
 {
-    unsigned int k1;
-    k1=-30;
+    signed int k1;
+    k1=-22;
     #TEST out k1
 }
+
