@@ -32,6 +32,6 @@ char isoperoneof(char o,char n,char* str);
 char operprior(char o,char n);
 rpnlist* MakePostfixFromInfix(char* infix);
 rpnlist* MakePostfixFromInfix2(char* infix);
-ag::stack<DTVar*>* CalculateRPN(rpnlist* rpn);
+ag::stack<DTVar*>* CalculateRPN(rpnlist* rpn, ag::list<DTVar*>* local);
 
 #endif // RPNLIST_H_INCLUDED

@@ -32,7 +32,7 @@ public:
     char* ReadToEOLN(ag::list<CPRTokenInfo>::member* p);
     char* ReadToSymbol(ag::list<CPRTokenInfo>::member& p,char _symb);
 
-    DTVar* FindVariable(char* sName);
+    DTVar* FindVariable(char* sName, ag::list<DTVar*>* local);
 
     ag::list<CPRTokenInfo> aTokens;
     ag::list<DTVar*> aVars;
@@ -45,5 +45,7 @@ private:
     char* sPText;
     int   iSize;
 };
+
+ag::tree<CPRTreeNode*>* FindFuncInTree(ag::tree<CPRTreeNode*>* T,char* sText);
 
 #endif // CPRAPP_INCLUDED

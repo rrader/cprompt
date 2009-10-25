@@ -198,12 +198,13 @@ rpnlist* MakePostfixFromInfix(char* infix)
             last_num=false;
             se=new RPNStackElement;
             se->tp=rsetStr;
-            ss=new char[255];
+            ss=new char[s_len+2];
             j=0;
             while(ss[j++]=s[j]);
             ss[s_len]=':';
             ss[s_len+1]=0;
             se->d = ss;
+            std::cout<<"temp "<<ss<<"\n";
             stack.push(se);
             se=new RPNStackElement;
             se->tp=rsetAct;
@@ -230,7 +231,7 @@ rpnlist* MakePostfixFromInfix(char* infix)
             //
             _res->add_tail(se);
             //
-            i++;
+            //i++;         // 1111111111111111
             k=infix[i];
         };
 
@@ -395,7 +396,7 @@ rpnlist* MakePostfixFromInfix(char* infix)
     return _res;
 }
 //6+*i
-ag::stack<DTVar*>* CalculateRPN(rpnlist* rpn)
+ag::stack<DTVar*>* CalculateRPN(rpnlist* rpn, ag::list<DTVar*>* local)
 {
     try{
         std::cout<<"CalculateRPN(\n";
@@ -417,7 +418,8 @@ ag::stack<DTVar*>* CalculateRPN(rpnlist* rpn)
                 int r=st->count();
                 std::cout<<r<<";\n";
                 if (((char*)m->data->d)[1]!='u')
-                  v=CalculateAct2op((DTMain*)(st->pop()->T),(DTMain*)(st->pop()->T),((char*)m->data->d)[0],((char*)m->data->d)[1]);
+                  v=CalculateAct2op((DTMain*)(st->pop()->T),(DTMain*)(st->pop()->T),((char*)m->data->d)[0],((char*)m->data->d)[1],
+                                        local);
                 else
                   v=CalculateAct1op((DTMain*)(st->pop()->T),((char*)m->data->d)[0],((char*)m->data->d)[1]);
                 st->push(v);
@@ -425,7 +427,38 @@ ag::stack<DTVar*>* CalculateRPN(rpnlist* rpn)
             }
             if(m->data->tp==rsetStr)
             {
-                    j=((CPRApplication*)AppV)->FindVariable((char*)m->data->d);
+                if ((((char*)m->data->d)[strlen(((char*)m->data->d))-1])==':')
+                {
+                    //App.aTree
+                    char* s=new char[strlen((char*)m->data->d)];
+                    strcpy(s,(char*)m->data->d);
+                    s[strlen((char*)m->data->d)-1]=0;
+                    ag::tree<CPRTreeNode*>* func_t=
+                        FindFuncInTree((ag::tree<CPRTreeNode*>*)((CPRApplication*)AppV->aTree->childs[0]->data),s);
+                    if (func_t==NULL)
+                    {
+                        throw "(FATAL ERROR) Function not found. Terminated.";
+                    }
+                    func_t->drawtree_con(&std::cout);
+                    ag::list<CPRTextDataType>* prms=(ag::list<CPRTextDataType>*)(func_t->data->r1);
+                    std::cout<<"function "<<(char*)m->data->d<<" have "<<prms->count()<<" parametets:\n";
+                    for(ag::list<CPRTextDataType>::member m=prms->head;m!=NULL;m=m->next)
+                    {
+                        std::cout<<((m->data.str1!=NULL)?m->data.str1:"")<<" ";
+                        std::cout<<((m->data.str2!=NULL)?m->data.str2:"")<<" ";
+                        std::cout<<((m->data.str3!=NULL)?m->data.str3:"")<<". \n";
+                    };
+                    DTVar* m;
+                    for(int i=0;i<prms->count();i++)
+                    {
+                        m=st->pop();
+                        (CPRApplication*)(AppV->aStack).push(m);
+                    }
+                    ((CPRApplication*)AppV)->ExecTree(func_t);
+                    st->push((((CPRApplication*)AppV)->aStack).pop());
+                }else
+                {
+                    j=((CPRApplication*)AppV)->FindVariable((char*)m->data->d, local);
                     if (j!=NULL)
                     {
                         st->push(j);
@@ -438,6 +471,7 @@ ag::stack<DTVar*>* CalculateRPN(rpnlist* rpn)
                         s=(char*)ss.c_str();
                         throw s;
                     }
+                }
 
             }
             /*switch (((char*)(m->data->d))[0])

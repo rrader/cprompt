@@ -42,9 +42,21 @@ void CPRApplication::ParseIt()
     }
 }
 
-DTVar* CPRApplication::FindVariable(char* sName)
+DTVar* CPRApplication::FindVariable(char* sName, ag::list<DTVar*>* local)
 {
     char* s;
+    if (local!=NULL)
+    {
+        for(ag::list<DTVar*>::member i=local->head;i!=NULL;i=i->next)
+        {
+            s=((DTMain*)(((DTVar*)i->data)->T))->sIdent;
+            if (strcmp(s,sName)==0)
+            {
+                return i->data;
+                break;
+            };
+        };
+    }
     for(ag::list<DTVar*>::member i=aVars.head;i!=NULL;i=i->next)
     {
         s=((DTMain*)(((DTVar*)i->data)->T))->sIdent;
@@ -184,6 +196,14 @@ void CPRApplication::BuildTree()
                     state=1;
                     std::cout<<"(s0): '"<<str1<<"' typename detected\n";
                 }else
+                if (strcmp(p->data.sCurrText,"return")==0)
+                {
+                    p=p->next;
+                    str1=ReadToSymbol(p,';');
+                    std::cout<<"(s0): '"<<str1<<"' return expression\n";
+                    tp=new ag::tree<CPRTreeNode*>(currparent,MakeCPRTreeNode(tntReturn,str1));
+                    tp->data->r1=MakePostfixFromInfix(str1);
+                }else
                 {
                     str1=ReadToSymbol(p,';');
                     std::cout<<"(s0): '"<<str1<<"' expression\n";
@@ -256,7 +276,7 @@ void CPRApplication::BuildTree()
 
                     k+=(strcmp(p->data.sCurrText,"[")==0)?1:0;
                     k+=(strcmp(p->data.sCurrText,"]")==0)?-1:0;
-                    p=p->next;
+                    //p=p->next;
 
                     if (k>0)
                     {
@@ -267,7 +287,7 @@ void CPRApplication::BuildTree()
 
                     if(k==1)strcat(str3,"[");
                     if(k==-1)strcat(str3,"]");
-
+                    if (k>0) p=p->next;
                     while ((k>0)&&(p!=NULL))
                     {
                         k+=(strcmp(p->data.sCurrText,"[")==0)?1:0;
@@ -279,7 +299,8 @@ void CPRApplication::BuildTree()
                         p=p->next;
                     };
                     lm->data.str3=str3;
-                    if (strcmp(p->data.sCurrText,",")==0) p=p->next;
+                    if (strcmp(p->data.sCurrText,",")==0)
+                        p=p->next;
                     //std::cout<<"(s4): function parameter '"<<str1<<" "<<str2<<"'\n";
                 }
                 for(ag::list<CPRTextDataType>::member I=(*((ag::list<CPRTextDataType>*)(n->r1))).head;I!=NULL;I=I->next)
@@ -326,13 +347,24 @@ ag::tree<CPRTreeNode*>* FindFuncInTree(ag::tree<CPRTreeNode*>* T,char* sText)
 void CPRApplication::ExecTree(ag::tree<CPRTreeNode*>* T)
 {
     ag::list<DTVar*> Local;
+    char* sq_s;
     if (T->data->tntType==tntFunction)
     {//if it's function, load arguments from stack to Local. search from the end
         int c=((ag::list<CPRTextDataType>*)(T->data->r1))->count();
+        ag::list<CPRTextDataType>::member pm=((ag::list<CPRTextDataType>*)(T->data->r1))->tail;
         for (int i=0;i<c;i++)
         {
-            Local.add_tail(aStack.pop());
+            ag::list<DTVar*>::member m=Local.add_tail(aStack.pop());// названия
+            ((DTMain*)(m->data->T))->sIdent=pm->data.str2;
+            pm=pm->prev;
         }
+        std::string sq=T->data->text2;
+        sq+="_result";
+        sq_s=new char[sq.size()+1];
+        strcpy(sq_s,sq.c_str());
+        sq_s[sq.size()]=0;
+        DTVar* r=ParseDataTypeString(T->data->text,sq_s,NULL,&Local);
+        Local.add_tail(r);
     }
 
     ag::listmember< ag::tree<CPRTreeNode*>* >* p=(*T).childs.head;
@@ -356,9 +388,9 @@ void CPRApplication::ExecTree(ag::tree<CPRTreeNode*>* T)
                         rpnstr+="=";*/
                         rpnstr+=(p->data->data->text3)?p->data->data->text3:"";
                         DTVar* dtv=ParseDataTypeString(p->data->data->text,p->data->data->text2,//p->data->data->text3);
-                               MakePostfixFromInfix((char*)rpnstr.c_str()));
-                        aVars.add_tail(dtv);
-                        std::cout<<"variable was added to aVar\n";
+                               MakePostfixFromInfix((char*)rpnstr.c_str()), &Local);
+                        Local.add_tail(dtv);
+                        std::cout<<"variable was added to Local\n";
                         std::cout<<((DTMain*)(dtv->T))->DTFullName()<<"\n";
                     }catch(char* k)
                     {
@@ -381,7 +413,17 @@ void CPRApplication::ExecTree(ag::tree<CPRTreeNode*>* T)
                 }
             case tntExpression:
                 {
-                    CalculateRPN((rpnlist*)p->data->data->r1);
+                    CalculateRPN((rpnlist*)p->data->data->r1, &Local);
+                    break;
+                }
+            case tntReturn:
+                {
+                    ag::stack<DTVar*>* g= CalculateRPN((rpnlist*)p->data->data->r1, &Local);
+                    DTVar* ret_var=FindVariable(sq_s,&Local);
+                    CalculateAssignation((DTMain*)(ret_var->T),(DTMain*)(g->pop()->T),&Local);
+                    aStack.push(ret_var);
+                    //if ((DTMain*)(ret_var->T)->typeoftype()==)
+                    exit;
                     break;
                 }
             case tntDirective:
@@ -398,16 +440,24 @@ void CPRApplication::ExecTree(ag::tree<CPRTreeNode*>* T)
                             pd->Next();
                             char* svar=pd->ReadIdent();
                             std::cout<<"out("<<svar<<")\n";
-                            for(ag::list<DTVar*>::member i=aVars.head;i!=NULL;i=i->next)
+                            DTVar* x=FindVariable(svar,&Local);
+                            if (x!=NULL)
                             {
-                                g=(DTVar*)(i->data);
-                                if (((DTMain*)(g->T))->sIdent==NULL) continue;
-                                if (strcmp((((DTMain*)(g->T))->sIdent),svar)==0)
-                                {
-                                    std::cout<<svar<<" = "<< (((DTMain*)(g->T))->tostring()) <<"\n";
-                                    break;
-                                };
-                            };
+                                std::cout<<svar<<" = "<< (((DTMain*)(x->T))->tostring()) <<"\n";
+                            }else
+                            {
+                                std::cout<<svar<<" not found!";
+                            }
+//                            for(ag::list<DTVar*>::member i=aVars.head;i!=NULL;i=i->next)
+//                            {
+//                                g=(DTVar*)(i->data);
+//                                if (((DTMain*)(g->T))->sIdent==NULL) continue;
+//                                if (strcmp((((DTMain*)(g->T))->sIdent),svar)==0)
+//                                {
+//                                    std::cout<<svar<<" = "<< (((DTMain*)(g->T))->tostring()) <<"\n";
+//                                    break;
+//                                };
+//                            };
                         };
                     };
                     break;

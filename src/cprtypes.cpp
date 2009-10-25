@@ -517,7 +517,7 @@ char* DTArray::tostring()
     DTVar* o;
     for(int i=0;i<count;i++)
     {
-        o=ParseDataTypeString(type_one,NULL,NULL);
+        o=ParseDataTypeString(type_one,NULL,NULL, NULL);
         (*(DTMain*)(o->T)).pData=GetElement(i);
         st+=(*(DTMain*)(o->T)).tostring();
         if ((i+1)!=count)
@@ -534,9 +534,9 @@ DTVar* CalculateDiff2op(DTMain* a,DTMain* b);
 DTVar* CalculateDiff1op(DTMain* a);
 DTVar* CalculateMul2op(DTMain* a,DTMain* b);
 DTVar* CalculateDiv2op(DTMain* a,DTMain* b);
-DTVar* CalculateAssignation(DTMain* a,DTMain* b);
+DTVar* CalculateAssignation(DTMain* a,DTMain* b, ag::list<DTVar*>* local);
 
-DTVar* CalculateAct2op(DTMain* a,DTMain* b,char c1,char c2)
+DTVar* CalculateAct2op(DTMain* a,DTMain* b,char c1,char c2, ag::list<DTVar*>* local)
 {
     if ((c1=='+')&&(c2==' '))
     {
@@ -556,7 +556,7 @@ DTVar* CalculateAct2op(DTMain* a,DTMain* b,char c1,char c2)
     };
     if ((c1=='=')&&(c2==' '))
     {
-        return CalculateAssignation(a,b);
+        return CalculateAssignation(a,b, local);
     };
 }
 
@@ -568,9 +568,10 @@ DTVar* CalculateAct1op(DTMain* a,char c1,char c2)
     };
 }
 
-DTVar* CalculateAssignation(DTMain* a,DTMain* b)
+DTVar* CalculateAssignation(DTMain* a,DTMain* b, ag::list<DTVar*>* local)
 {
-     if ((a->typeoftype()==b->typeoftype())&&(b->typeoftype()==1))
+     if (((a->typeoftype()==b->typeoftype()))||
+         ((a->typeoftype()==2)&&(b->typeoftype()==1)))
      {
          a->dtmemfree();
          rpnlist* rl=new rpnlist;
@@ -578,10 +579,21 @@ DTVar* CalculateAssignation(DTMain* a,DTMain* b)
          rse->tp=rsetNum;
          rse->d=b;
          rl->add_tail(rse);
-         DTVar* dv=ParseDataTypeString(b->DTName(),a->sIdent,rl);
-         a->assign(b);
+         DTVar* dv=ParseDataTypeString(a->DTName(),a->sIdent,rl,local);
+         a->assign((DTMain*)(dv->T));
          std::cout<<"CalculateAssignation(): a="<<a->tostring()<<"\n";
-     };
+     }else
+     {
+        std::string ret="Uncompatible types in assignation: <";
+        ret+=a->DTName();
+        ret+="> and <";
+        ret+=b->DTName();
+        ret+=">";
+        char* ret_s=new char[ret.size()+1];
+        strcpy(ret_s,ret.c_str());
+        ret_s[ret.size()]=0;
+        throw ret_s;
+     }
 }
 
 DTVar* CalculateSum2op(DTMain* a,DTMain* b)
@@ -669,7 +681,7 @@ DTVar* CalculateDiv2op(DTMain* a,DTMain* b)
 }
 
 
-void* DoIntInitializeActions(int t,char* sDT,char* sName, rpnlist* data,DTVar* k)
+void* DoIntInitializeActions(int t,char* sDT,char* sName, rpnlist* data,DTVar* k, ag::list<DTVar*>* local)
 {
     switch(t)
     {
@@ -681,7 +693,7 @@ void* DoIntInitializeActions(int t,char* sDT,char* sName, rpnlist* data,DTVar* k
     {
         if (!data->empty())
         {
-            ag::stack<DTVar*>* v=CalculateRPN(data);
+            ag::stack<DTVar*>* v=CalculateRPN(data,local);
             DTMain* h=(DTMain*)(v->pop()->T);
             if(h->typeoftype()<=2)
             {
@@ -710,7 +722,7 @@ void* DoIntInitializeActions(int t,char* sDT,char* sName, rpnlist* data,DTVar* k
     };
 };
 
-void* DoDoubleInitializeActions(int t,char* sDT,char* sName, rpnlist* data,DTVar* k)
+void* DoDoubleInitializeActions(int t,char* sDT,char* sName, rpnlist* data,DTVar* k, ag::list<DTVar*>* local)
 {
     switch(t)
     {
@@ -721,7 +733,7 @@ void* DoDoubleInitializeActions(int t,char* sDT,char* sName, rpnlist* data,DTVar
     {
         if (!data->empty())
         {
-            ag::stack<DTVar*>* v=CalculateRPN(data);
+            ag::stack<DTVar*>* v=CalculateRPN(data, local);
             DTMain* h=(DTMain*)(v->pop()->T);
             if (h->typeoftype()<=2)
             {
@@ -747,7 +759,7 @@ void* DoDoubleInitializeActions(int t,char* sDT,char* sName, rpnlist* data,DTVar
     };
 };
 
-DTVar* ParseDataTypeString(char* sDT,char* sName, rpnlist* data)
+DTVar* ParseDataTypeString(char* sDT,char* sName, rpnlist* data, ag::list<DTVar*>* local)
 {
     try{
 
@@ -768,23 +780,23 @@ DTVar* ParseDataTypeString(char* sDT,char* sName, rpnlist* data)
         k->dtet=dtetNative;
         if (strcmp(sDT,"signed int")==0)
         {
-            DoIntInitializeActions(1,sDT,sName,data,k);
+            DoIntInitializeActions(1,sDT,sName,data,k, local);
         }else
         if (strcmp(sDT,"unsigned int")==0)
         {
-            DoIntInitializeActions(2,sDT,sName,data,k);
+            DoIntInitializeActions(2,sDT,sName,data,k, local);
         }else
         if (strcmp(sDT,"char")==0)
         {
-            DoIntInitializeActions(3,sDT,sName,data,k);
+            DoIntInitializeActions(3,sDT,sName,data,k, local);
         }else
         if (strcmp(sDT,"float")==0)
         {
-            DoDoubleInitializeActions(1,sDT,sName,data,k);
+            DoDoubleInitializeActions(1,sDT,sName,data,k, local);
         }else
         if (strcmp(sDT,"double")==0)
         {
-            DoDoubleInitializeActions(2,sDT,sName,data,k);
+            DoDoubleInitializeActions(2,sDT,sName,data,k, local);
         }else
 
         {
