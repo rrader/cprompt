@@ -120,7 +120,7 @@
 	"lists.h"
 	"string.h"
 
-1256415369 /home/roma/projects/cprompt/trunk/src/cprapp.h
+1256767908 /home/roma/projects/cprompt/trunk/src/cprapp.h
 	"trees.h"
 	"cpr_parser.h"
 	"main.h"
@@ -133,21 +133,22 @@
 	"lists.h"
 	"main.h"
 
-1256416868 /home/roma/projects/cprompt/trunk/src/main.h
+1256647402 /home/roma/projects/cprompt/trunk/src/main.h
 	<stdio.h>
 
 1256157169 /home/roma/projects/cprompt/trunk/src/cpr_parser.h
 	"sets.h"
 
-1256157169 /home/roma/projects/cprompt/trunk/src/sets.h
+1256813506 /home/roma/projects/cprompt/trunk/src/sets.h
 	<string.h>
 
-1256157169 source:/home/roma/projects/cprompt/trunk/src/cpr_parser.cpp
+1256813781 source:/home/roma/projects/cprompt/trunk/src/cpr_parser.cpp
+	<iostream>
 	<string.h>
 	<fstream>
 	"cpr_parser.h"
 
-1256455401 source:/home/roma/projects/cprompt/trunk/src/cprapp.cpp
+1256813397 source:/home/roma/projects/cprompt/trunk/src/cprapp.cpp
 	<stdio.h>
 	<stdlib.h>
 	<new>
@@ -162,7 +163,7 @@
 
 1256157169 /home/roma/projects/cprompt/trunk/src/cprexec.h
 
-1256369701 source:/home/roma/projects/cprompt/trunk/src/main.cpp
+1256768475 source:/home/roma/projects/cprompt/trunk/src/main.cpp
 	<iostream>
 	<fstream>
 	<string.h>
@@ -172,7 +173,7 @@
 	"cprapp.h"
 	"cprtypes.h"
 
-1256418257 source:/home/roma/projects/cprompt/trunk/src/rpnlist.cpp
+1256761856 source:/home/roma/projects/cprompt/trunk/src/rpnlist.cpp
 	<stdlib.h>
 	"cprtypes.h"
 	"rpnlist.h"

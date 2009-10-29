@@ -17,7 +17,7 @@ class set
             memset(_marr,0,256);
             include_s(s);
         }
-        explicit set(set& s)
+        set(set& s)
         {
             _marr=new char[256];
             memcpy(_marr,s._marr,256);

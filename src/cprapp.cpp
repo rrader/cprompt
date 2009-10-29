@@ -25,20 +25,55 @@ void CPRApplication::SetFile(char* sName)
     file.seekg (0, std::ios::end);
     int length = file.tellg();
     file.seekg (0, std::ios::beg);
-    sPText=new char[length];
+    sPText=new char[length+1];
     file.read(sPText,length);
+    sPText[length]=0;
     file.close();
+
+    int tmp=strlen(sName);
+    sFilePath=new char[tmp];
+    strcpy(sFilePath,sName);
 }
 
-void CPRApplication::ParseIt()
+char* CPRApplication::GetFileText(char* sFName)
 {
-    CPRParser cParser(sPText);
+    char* res;
+    std::ifstream file;
+    file.open (sFName, std::ios::binary );
+
+    file.seekg (0, std::ios::end);
+    int length = file.tellg();
+    file.seekg (0, std::ios::beg);
+    res=new char[length+1];
+    file.read(res,length);
+    res[length]=0;
+    file.close();
+    return res;
+}
+
+void CPRApplication::ParseIt(ag::list<CPRTokenInfo>* pTok,char* sText)
+{
+    char* psText;
+    if (sText==NULL)
+    {
+        psText=sPText;
+    }else
+    {
+        psText=sText;
+    }
+    CPRParser cParser(psText);
     CPRTokenInfo i;
+    ag::list<CPRTokenInfo>*pTokens;
+    if (pTok!=NULL)
+        pTokens=pTok;
+    else
+        pTokens=&aTokens;
+
     while (cParser.NowType()!=petEOF)
     {
         cParser.Next();
         i=*(cParser.GetInfo());
-        aTokens.add_tail(i);
+        pTokens->add_tail(i);
     }
 }
 
@@ -47,7 +82,7 @@ DTVar* CPRApplication::FindVariable(char* sName, ag::list<DTVar*>* local)
     char* s;
     if (local!=NULL)
     {
-        for(ag::list<DTVar*>::member i=local->head;i!=NULL;i=i->next)
+        for(ag::list<DTVar*>::member i=local->tail;i!=NULL;i=i->prev)
         {
             s=((DTMain*)(((DTVar*)i->data)->T))->sIdent;
             if (strcmp(s,sName)==0)
@@ -57,7 +92,7 @@ DTVar* CPRApplication::FindVariable(char* sName, ag::list<DTVar*>* local)
             };
         };
     }
-    for(ag::list<DTVar*>::member i=aVars.head;i!=NULL;i=i->next)
+    for(ag::list<DTVar*>::member i=aVars.tail;i!=NULL;i=i->prev)
     {
         s=((DTMain*)(((DTVar*)i->data)->T))->sIdent;
         if (strcmp(s,sName)==0)
@@ -74,6 +109,7 @@ char* CPRApplication::ReadTypename(ag::list<CPRTokenInfo>::member& p)
     std::cout<<"CPRApplication::ReadTypename\n";
     ag::stringlist sl;
     ag::stringlist::member sl_m;
+    sl_m=aTypenames->findstr(p->data.sCurrText);
     sl.delall();
     while(sl_m!=NULL)
     {
@@ -118,10 +154,11 @@ char* CPRApplication::ReadToSymbol(ag::list<CPRTokenInfo>::member& p,char _symb)
     return sl.makestrfromelements();
 }
 
-char* CPRApplication::ReadIdent(ag::list<CPRTokenInfo>::member* p)
+char* CPRApplication::ReadIdent(ag::list<CPRTokenInfo>::member* p, char* FText)
 {
     std::cout<<"CPRApplication::ReadIdent()\n";
-    CPRParser prs(this->sPText,(*p)->data.iStartPos);
+    CPRParser prs(FText,(*p)->data.iStartPos);
+    int* E=new int;
     char* m  = prs.ReadIdent();
 /*    char* m2 = ((strcmp(m,"*")==0)||(strcmp(m,"&")==0))?prs.ReadIdent():NULL;
     if (m2!=NULL) strcat(m,m2);*/
@@ -131,9 +168,9 @@ char* CPRApplication::ReadIdent(ag::list<CPRTokenInfo>::member* p)
     return m;
 }
 
-char* CPRApplication::ReadToEOLN(ag::list<CPRTokenInfo>::member* p)//!!!!!!!!!!!!!!!!!
+char* CPRApplication::ReadToEOLN(ag::list<CPRTokenInfo>::member* p, char* FText)//!!!!!!!!!!!!!!!!!
 {
-    CPRParser prs(this->sPText,(*p)->data.iStartPos);
+    CPRParser prs(FText,(*p)->data.iStartPos);
     char* m  = prs.ReadToEOLN();
 /*    char* m2 = ((strcmp(m,"*")==0)||(strcmp(m,"&")==0))?prs.ReadIdent():NULL;
     if (m2!=NULL) strcat(m,m2);*/
@@ -142,24 +179,52 @@ char* CPRApplication::ReadToEOLN(ag::list<CPRTokenInfo>::member* p)//!!!!!!!!!!!
     return m;
 }
 
-void CPRApplication::BuildTree()
+void CPRApplication::BuildTree(char* spath,char* sfullpath,ag::list<CPRTokenInfo>* pTok)
 {
     std::cout<<"CPRApplication::BuildTree()\n";
     int state=0;
     ag::tree<CPRTreeNode*>* mainparent=this->aTree;
-    ag::tree<CPRTreeNode*>* funcparent=this->aTree->addchild(MakeCPRTreeNode(tntNone,"FUNCTIONS"));
+    ag::tree<CPRTreeNode*>* funcparent=FindText1InTree(aTree,"FUNCTIONS");
+    if (funcparent==NULL)
+        funcparent=this->aTree->addchild(MakeCPRTreeNode(tntNone,"FUNCTIONS"));
     ag::tree<CPRTreeNode*>* currparent=funcparent;
     ag::tree<CPRTreeNode*>* tp;
     ag::list<CPRTextDataType>::member lm;
     CPRTreeNode *n;
-    CPRTextDataType *dt;
+    CPRTextDataType *dt=new CPRTextDataType;
     int k=0;
-    char *str1,*str2,*str3;
+    char *str1,*str2,*str3,*str4;
     int* q;
     int iSz;
     int iSz2;
+    ag::list<CPRTokenInfo>*pTokens;
+    if (pTok!=NULL)
+        pTokens=pTok;
+    else
+        pTokens=&aTokens;
 
-    for(ag::list<CPRTokenInfo>::member p=aTokens.head;(p!=NULL)&&(p->data.petCurrType!=petEOF);p=p->next)
+    char* path;
+    if (spath==NULL)
+    {
+        path=new char[strlen(sFilePath)+1];
+        strcpy(path,sFilePath);
+        path[strlen(sFilePath)]=0;
+        while((path[strlen(path)-1]!='/')&&(strlen(path)>0))
+        {
+            path[strlen(path)-1]=0;
+        }
+    }
+    else
+        { path=spath; }
+
+    char* fpath;
+    if (spath==NULL)
+        { fpath=new char[strlen(sFilePath)+1]; strcpy(fpath,sFilePath); fpath[strlen(sFilePath)]=0; }
+    else
+        { fpath=sfullpath; }
+
+
+    for(ag::list<CPRTokenInfo>::member p=pTokens->head;(p!=NULL)&&(p->data.petCurrType!=petEOF);p=p->next)
     {
         //l=new int;
         switch (state)
@@ -169,9 +234,57 @@ void CPRApplication::BuildTree()
                 if (p->data.sCurrText[0]=='#')
                 {
 					p=p->next;
-					str1=ReadToEOLN(&p);
-                    std::cout<<"(s0): directive: "<<str1<<"\n";
-					tp=new ag::tree<CPRTreeNode*>(currparent,MakeCPRTreeNode(tntDirective,str1));
+					if (strcmp(p->data.sCurrText,"include")==0)
+					{
+					    p=p->next;
+					    str1=ReadToEOLN(&p, GetFileText(fpath));
+					    str2=new char[strlen(str1)+strlen(path)+2];
+                        std::string q2;
+					    if ((str1[0]=='"')&&(str1[strlen(str1)-1]=='"'))
+					    {
+					        str1++;
+					        str1[strlen(str1)-1]=0;
+					        q2=path;
+					        if (path[strlen(path)-1]!='/')
+                                q2+='/';
+                            q2+=str1;
+					    }else
+					    if ((str1[0]=='<')&&(str1[strlen(str1)-1]=='>'))
+					    {
+					        char* incpath=getenv("CPROMPTINCLUDE");
+					        if(incpath==NULL)
+					        {
+					            std::cout<<"(FATAL ERROR) Enviromnent variable CPROMPTINCLUDE is not initialized\n";
+					        }
+					        q2=incpath;
+					        if (incpath[strlen(incpath)-1]!='/')
+                                q2+='/';
+                            str3=new char[q2.size()+1];
+                            strcpy(str3,q2.c_str());
+                            str3[q2.size()]=0;
+					        str1++;
+					        str1[strlen(str1)-1]=0;
+                            q2+=str1;
+                            str4=new char[q2.size()+1];
+                            strcpy(str4,q2.c_str());
+                            str4[q2.size()]=0;
+                            std::cout<<"path: "<<q2<<"\n";
+                            ag::list<CPRTokenInfo>* aTo=new ag::list<CPRTokenInfo>;
+                            ParseIt(aTo,GetFileText(str4));
+                            for(ag::list<CPRTokenInfo>::member p=aTo->head;p!=NULL;p=p->next)
+                                std::cout << p->data.sCurrText << ": " << p->data.petCurrType << "; ";
+                            std::cout<<"\n";
+                            BuildTree(str3,str4,aTo);
+					    }else
+					    {
+					        std::cout<<"(ERROR) Erroneous include\n";
+					    }
+					}else
+					{
+                        str1=ReadToEOLN(&p, GetFileText(fpath));
+                        std::cout<<"(s0): directive: "<<str1<<"\n";
+                        tp=new ag::tree<CPRTreeNode*>(currparent,MakeCPRTreeNode(tntDirective,str1));
+					}
                 }else
 				/*if (p->data.sCurrText[0]=='@')
 				{
@@ -214,7 +327,7 @@ void CPRApplication::BuildTree()
 
             case 1://<typename>_
                 std::cout<<"(s1) start\n";
-                str2=ReadIdent(&p);
+                str2=ReadIdent(&p, GetFileText(fpath));
                 state=2;
                 std::cout<<"(s1): '"<<str2<<"' ident for typename '"<<str1<<"'\n";
             break;
@@ -265,11 +378,11 @@ void CPRApplication::BuildTree()
                         state=0;
                         break;
                     }
-                    lm=(*((ag::list<CPRTextDataType>*)(n->r1))).add_tail(*dt);
+                    lm=((ag::list<CPRTextDataType>*)(n->r1))->add_tail(*dt); // Внимание! Я не помню зачем это и как оно работает! Возможны ошибки!
                     str1=ReadTypename(p);
                     lm->data.str1=str1;
                     p=p->next;
-                    str2=ReadIdent(&p);
+                    str2=ReadIdent(&p, GetFileText(fpath));
                     lm->data.str2=str2;
                     p=p->next;
                     k=0;
@@ -319,7 +432,7 @@ void CPRApplication::BuildTree()
                 if (strcmp(p->data.sCurrText,";")==0)
                 {
                     n->tntType=tntDeclareFunc;
-                    std::cout<<"(s4): it was declaration of function\n";
+                    std::cout<<"(s4): it was forward declaration of function\n";
                 }
                 state=0;
             break;
@@ -330,7 +443,7 @@ void CPRApplication::BuildTree()
     }
 }
 
-ag::tree<CPRTreeNode*>* FindFuncInTree(ag::tree<CPRTreeNode*>* T,char* sText)
+ag::tree<CPRTreeNode*>* FindText2InTree(ag::tree<CPRTreeNode*>* T,char* sText)
 {
     ag::listmember< ag::tree<CPRTreeNode*>* >* p=(*T).childs.head;
     while (p!=NULL)
@@ -344,19 +457,34 @@ ag::tree<CPRTreeNode*>* FindFuncInTree(ag::tree<CPRTreeNode*>* T,char* sText)
 	return NULL;
 }
 
+ag::tree<CPRTreeNode*>* FindText1InTree(ag::tree<CPRTreeNode*>* T,char* sText)
+{
+    ag::listmember< ag::tree<CPRTreeNode*>* >* p=(*T).childs.head;
+    while (p!=NULL)
+    {
+		if (strcmp(p->data->data->text,sText)==0)
+		{
+			return p->data;
+		}
+        p=p->next;
+    }
+	return NULL;
+}
+
 void CPRApplication::ExecTree(ag::tree<CPRTreeNode*>* T)
 {
     ag::list<DTVar*> Local;
+    bool was_ret=false;
     char* sq_s;
     if (T->data->tntType==tntFunction)
     {//if it's function, load arguments from stack to Local. search from the end
         int c=((ag::list<CPRTextDataType>*)(T->data->r1))->count();
-        ag::list<CPRTextDataType>::member pm=((ag::list<CPRTextDataType>*)(T->data->r1))->tail;
+        ag::list<CPRTextDataType>::member pm=((ag::list<CPRTextDataType>*)(T->data->r1))->head;
         for (int i=0;i<c;i++)
         {
             ag::list<DTVar*>::member m=Local.add_tail(aStack.pop());// названия
             ((DTMain*)(m->data->T))->sIdent=pm->data.str2;
-            pm=pm->prev;
+            pm=pm->next;
         }
         std::string sq=T->data->text2;
         sq+="_result";
@@ -423,7 +551,7 @@ void CPRApplication::ExecTree(ag::tree<CPRTreeNode*>* T)
                     CalculateAssignation((DTMain*)(ret_var->T),(DTMain*)(g->pop()->T),&Local);
                     aStack.push(ret_var);
                     //if ((DTMain*)(ret_var->T)->typeoftype()==)
-                    exit;
+                    return;
                     break;
                 }
             case tntDirective:
@@ -465,12 +593,13 @@ void CPRApplication::ExecTree(ag::tree<CPRTreeNode*>* T)
         };
         p=p->next;
     };
+    aStack.push(FindVariable(sq_s,&Local));
 }
 
 void CPRApplication::ExecMainTree(ag::tree<CPRTreeNode*>* T)
 {
 	ag::tree<CPRTreeNode*>* tFuncs=T->childs[0]->data;
-	ag::tree<CPRTreeNode*>* mainf=FindFuncInTree(tFuncs,"main");
+	ag::tree<CPRTreeNode*>* mainf=FindText2InTree(tFuncs,"main");
 	if (mainf==NULL)
 	{
 		std::cout<<"(FATAL ERROR) Function 'main' not found. Terminated.";
@@ -479,11 +608,12 @@ void CPRApplication::ExecMainTree(ag::tree<CPRTreeNode*>* T)
 	mainf->drawtree_con(&std::cout);
 	std::cout<<"function parameter argc="<<argc-1<<"\n";
     DTInt* L=new DTInt("argc",argc-1);
-	aStack.push(DTVar::CreateNativeDTVarFromDTMain(L));
 
     DTArray* cpargv=new DTArray("argv",sizeof(char*),argc-1,"char*");
     DTVar* m=DTVar::CreateNativeDTVarFromDTMain(cpargv);
+
     aStack.push(m);
+    aStack.push(DTVar::CreateNativeDTVarFromDTMain(L));
 
     void** ss=new void*;
     char* tmp;

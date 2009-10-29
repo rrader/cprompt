@@ -20,16 +20,17 @@ public:
 
     void SetText(char* sText);
     void SetFile(char* sText);
+    char* GetFileText(char* sFName);
 
-    void ParseIt();
-    void BuildTree();
+    void ParseIt(ag::list<CPRTokenInfo>* pTok=NULL,char* sText=NULL);
+    void BuildTree(char* spath=NULL,char* sfullpath=NULL,ag::list<CPRTokenInfo>* pTok=NULL);
     void ExecMainTree(ag::tree<CPRTreeNode*>* T);
     void ExecTree(ag::tree<CPRTreeNode*>* T);
 
     char* ReadTypename(ag::list<CPRTokenInfo>::member& p);
     bool  IsTypename(ag::list<CPRTokenInfo>::member p);
-    char* ReadIdent(ag::list<CPRTokenInfo>::member* p);
-    char* ReadToEOLN(ag::list<CPRTokenInfo>::member* p);
+    char* ReadIdent(ag::list<CPRTokenInfo>::member* p, char* FText);
+    char* ReadToEOLN(ag::list<CPRTokenInfo>::member* p, char* FText);
     char* ReadToSymbol(ag::list<CPRTokenInfo>::member& p,char _symb);
 
     DTVar* FindVariable(char* sName, ag::list<DTVar*>* local);
@@ -44,8 +45,10 @@ protected:
 private:
     char* sPText;
     int   iSize;
+    char* sFilePath;
 };
 
-ag::tree<CPRTreeNode*>* FindFuncInTree(ag::tree<CPRTreeNode*>* T,char* sText);
+ag::tree<CPRTreeNode*>* FindText1InTree(ag::tree<CPRTreeNode*>* T,char* sText);
+ag::tree<CPRTreeNode*>* FindText2InTree(ag::tree<CPRTreeNode*>* T,char* sText);
 
 #endif // CPRAPP_INCLUDED

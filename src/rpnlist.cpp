@@ -434,7 +434,7 @@ ag::stack<DTVar*>* CalculateRPN(rpnlist* rpn, ag::list<DTVar*>* local)
                     strcpy(s,(char*)m->data->d);
                     s[strlen((char*)m->data->d)-1]=0;
                     ag::tree<CPRTreeNode*>* func_t=
-                        FindFuncInTree((ag::tree<CPRTreeNode*>*)((CPRApplication*)AppV->aTree->childs[0]->data),s);
+                        FindText2InTree((ag::tree<CPRTreeNode*>*)((CPRApplication*)AppV->aTree->childs[0]->data),s);
                     if (func_t==NULL)
                     {
                         throw "(FATAL ERROR) Function not found. Terminated.";

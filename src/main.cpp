@@ -160,7 +160,7 @@ int main(int argc,char* argv[])
     App.SetFile(argv[1]);
 	std::cout<<"1. Parsing\n";
     App.ParseIt();
-    for(ag::list<CPRTokenInfo>::member p=App.aTokens.head;p!=App.aTokens.tail;p=p->next)
+    for(ag::list<CPRTokenInfo>::member p=App.aTokens.head;p!=NULL;p=p->next)
         std::cout << p->data.sCurrText << ": " << p->data.petCurrType << "; ";
 	std::cout<<"\n\n";
 	std::cout<<"2. Building the main tree\n";

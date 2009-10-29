@@ -1,3 +1,4 @@
+#include <iostream>
 #include <string.h>
 #include <fstream>
 #include "cpr_parser.h"
@@ -103,8 +104,9 @@ CPRParser::~CPRParser()
 void CPRParser::SetText(char* sText)
 {
     iSize=strlen(sText);
-    sPText=new char[iSize];
+    sPText=new char[iSize+1];
     strcpy(sPText,sText);
+    sPText[iSize]=0;
     iPosition=0;
 }
 
@@ -190,6 +192,11 @@ CPRParserExpType CPRParser::NewPosition()
 
 char* CPRParser::Next(bool bClearLast)
 {
+//    if (iPosition>=iSize)
+//    {
+//        petCurrType=petEOF;
+//        return NULL;
+//    }
     PassSymbs();
     NewPosition();
 
@@ -267,7 +274,10 @@ void CPRParser::PassSymbs()
 
 char* CPRParser::ReadIdent()
 {
-    ag::set sAllowed(sIdentSymbs);
+    std::cout<<"CPRParser::ReadIdent()\n";
+    int* J=new int;
+    ag::set sAllowed;
+    sAllowed=sIdentSymbs;
     int iPos1=iPosition-iCurrLength;
     int sz=0;
     while (sAllowed%sPText[iPosition-iCurrLength])
