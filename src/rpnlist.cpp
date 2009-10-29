@@ -403,6 +403,7 @@ ag::stack<DTVar*>* CalculateRPN(rpnlist* rpn, ag::list<DTVar*>* local)
         DTMain* v;
         DTVar* j;
         int i;
+        int* yu=new int;
         ag::stack<DTVar*>* st=new ag::stack<DTVar*>;
         for(rpnlist::member m=(*rpn).head;m!=NULL;m=m->next)
         {

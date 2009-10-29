@@ -248,6 +248,18 @@ void CPRApplication::BuildTree(char* spath,char* sfullpath,ag::list<CPRTokenInfo
 					        if (path[strlen(path)-1]!='/')
                                 q2+='/';
                             q2+=str1;
+                            str4=new char[q2.size()+1];
+                            strcpy(str4,q2.c_str());
+                            str4[q2.size()]=0;
+                            std::cout<<"path 1: "<<path<<"\n";
+                            std::cout<<"path 2: "<<str4<<"\n";
+
+                            ag::list<CPRTokenInfo>* aTo=new ag::list<CPRTokenInfo>;
+                            ParseIt(aTo,GetFileText(str4));
+                            for(ag::list<CPRTokenInfo>::member p=aTo->head;p!=NULL;p=p->next)
+                                std::cout << p->data.sCurrText << ": " << p->data.petCurrType << "; ";
+                            std::cout<<"\n";
+                            BuildTree(path,str4,aTo);
 					    }else
 					    if ((str1[0]=='<')&&(str1[strlen(str1)-1]=='>'))
 					    {
