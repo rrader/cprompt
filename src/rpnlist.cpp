@@ -7,13 +7,13 @@ extern CPRApplication* AppV;
 
 
 
-const char* sOperators=",=?:|&^!<>+-*/%~";
-const char* sOperatorsLeft  = ", ||&&| ^ & ==!=< <==>> >><<+ - * / % ";
+const char* sOperators="=?:|&^!<>+-*/%~";
+const char* sOperatorsLeft  = "||&&| ^ & ==!=< <==>> >><<+ - * / % ";
 
 const int PRIOR_COUNT=15;
 
 const char* sOperPrior[PRIOR_COUNT]={
-                ", ", //15
+                "", //15
                 "( [ ", //1
                 "++--& * ", //2
                 "* / % ", //3
@@ -246,6 +246,15 @@ rpnlist* MakePostfixFromInfix(char* infix)
                 se=stack.pop();
                 res->add_tail(se);
                 std::cout<<se->tp<<": "<<(char*)(se->d)<<"\n";
+                if (se->tp==rsetNum)
+                {
+                    switch (((char*)(se->d))[0])
+                    {
+                        case 'i':se->d=new DTInt(NULL,atoi(((char*)(se->d))+1));
+                        case 'f':se->d=new DTDouble(NULL,atof(((char*)(se->d))+1));
+                    }
+                }
+                _res->add_tail(se);
             }
             if (k==')')
             {

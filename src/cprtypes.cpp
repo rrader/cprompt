@@ -778,7 +778,7 @@ DTVar* ParseDataTypeString(char* sDT,char* sName, rpnlist* data, ag::list<DTVar*
         }
         std::cout<<sDT<<" is native data\n";
         k->dtet=dtetNative;
-        if (strcmp(sDT,"signed int")==0)
+        if ((strcmp(sDT,"signed int")==0)||(strcmp(sDT,"int")==0))
         {
             DoIntInitializeActions(1,sDT,sName,data,k, local);
         }else
@@ -798,7 +798,6 @@ DTVar* ParseDataTypeString(char* sDT,char* sName, rpnlist* data, ag::list<DTVar*
         {
             DoDoubleInitializeActions(2,sDT,sName,data,k, local);
         }else
-
         {
             char* K=new char[strlen("parsing: undeclarated typename: ")+strlen(sDT)];
             strcpy(K,"parsing: undeclarated typename: ");

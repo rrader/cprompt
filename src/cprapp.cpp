@@ -231,6 +231,22 @@ void CPRApplication::BuildTree(char* spath,char* sfullpath,ag::list<CPRTokenInfo
         {
             case 0://new expression
                 std::cout<<"(s0) start: "<<p->data.sCurrText<<", "<<p->data.petCurrType<<"\n";
+                if (p->data.sCurrText[0]=='if')
+                {
+                    ;
+                }
+                if (p->data.sCurrText[0]=='while')
+                {
+                    ;
+                }
+                if (p->data.sCurrText[0]=='for')
+                {
+                    ;
+                }
+                if (p->data.sCurrText[0]=='do')
+                {
+                    ;
+                }
                 if (p->data.sCurrText[0]=='#')
                 {
 					p=p->next;
