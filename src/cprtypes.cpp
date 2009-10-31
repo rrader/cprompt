@@ -534,6 +534,12 @@ DTVar* CalculateDiff2op(DTMain* a,DTMain* b);
 DTVar* CalculateDiff1op(DTMain* a);
 DTVar* CalculateMul2op(DTMain* a,DTMain* b);
 DTVar* CalculateDiv2op(DTMain* a,DTMain* b);
+DTVar* CalculateLarger2op(DTMain* a,DTMain* b);
+DTVar* CalculateLesser2op(DTMain* a,DTMain* b);
+DTVar* CalculateLargerOrEqually2op(DTMain* a,DTMain* b);
+DTVar* CalculateLesserOrEqually2op(DTMain* a,DTMain* b);
+DTVar* CalculateEqually2op(DTMain* a,DTMain* b);
+DTVar* CalculateNotEqually2op(DTMain* a,DTMain* b);
 DTVar* CalculateAssignation(DTMain* a,DTMain* b, ag::list<DTVar*>* local);
 
 DTVar* CalculateAct2op(DTMain* a,DTMain* b,char c1,char c2, ag::list<DTVar*>* local)
@@ -553,6 +559,30 @@ DTVar* CalculateAct2op(DTMain* a,DTMain* b,char c1,char c2, ag::list<DTVar*>* lo
     if ((c1=='/')&&(c2==' '))
     {
         return CalculateDiv2op(a,b);
+    };
+    if ((c1=='>')&&(c2==' '))
+    {
+        return CalculateLarger2op(a,b);
+    };
+    if ((c1=='<')&&(c2==' '))
+    {
+        return CalculateLesser2op(a,b);
+    };
+    if ((c1=='>')&&(c2=='='))
+    {
+        return CalculateLargerOrEqually2op(a,b);
+    };
+    if ((c1=='<')&&(c2=='='))
+    {
+        return CalculateLesserOrEqually2op(a,b);
+    };
+    if ((c1=='=')&&(c2=='='))
+    {
+        return CalculateEqually2op(a,b);
+    };
+    if ((c1=='!')&&(c2=='='))
+    {
+        return CalculateNotEqually2op(a,b);
     };
     if ((c1=='=')&&(c2==' '))
     {
@@ -594,6 +624,7 @@ DTVar* CalculateAssignation(DTMain* a,DTMain* b, ag::list<DTVar*>* local)
         ret_s[ret.size()]=0;
         throw ret_s;
      }
+     return DTVar::CreateNativeDTVarFromDTMain(a);
 }
 
 DTVar* CalculateSum2op(DTMain* a,DTMain* b)
@@ -609,6 +640,66 @@ DTVar* CalculateSum2op(DTMain* a,DTMain* b)
          ((b->typeoftype()==2)&&((a->typeoftype()==1)||(a->typeoftype()==2))))
      {
          DTBigFloatType* k=new DTBigFloatType(NULL, ((DTFloatTypes*)a)->tofloat()+((DTFloatTypes*)b)->tofloat());
+         return DTVar::CreateNativeDTVarFromDTMain(k);
+     };
+}
+
+DTVar* CalculateLarger2op(DTMain* a,DTMain* b)
+{
+     //integer or float
+     if (((a->typeoftype()==1)||(a->typeoftype()==2))&&((b->typeoftype()==1)||(b->typeoftype()==2)))
+     {
+         DTBigIntegerType* k=new DTBigIntegerType(NULL, ((DTFloatTypes*)a)->tofloat()>((DTFloatTypes*)b)->tofloat());
+         return DTVar::CreateNativeDTVarFromDTMain(k);
+     };
+}
+
+DTVar* CalculateLargerOrEqually2op(DTMain* a,DTMain* b)
+{
+     //integer or float
+     if (((a->typeoftype()==1)||(a->typeoftype()==2))&&((b->typeoftype()==1)||(b->typeoftype()==2)))
+     {
+         DTBigIntegerType* k=new DTBigIntegerType(NULL, ((DTFloatTypes*)a)->tofloat()>=((DTFloatTypes*)b)->tofloat());
+         return DTVar::CreateNativeDTVarFromDTMain(k);
+     };
+}
+
+DTVar* CalculateLesser2op(DTMain* a,DTMain* b)
+{
+     //integer or float
+     if (((a->typeoftype()==1)||(a->typeoftype()==2))&&((b->typeoftype()==1)||(b->typeoftype()==2)))
+     {
+         DTBigIntegerType* k=new DTBigIntegerType(NULL, ((DTFloatTypes*)a)->tofloat()<((DTFloatTypes*)b)->tofloat());
+         return DTVar::CreateNativeDTVarFromDTMain(k);
+     };
+}
+
+DTVar* CalculateLesserOrEqually2op(DTMain* a,DTMain* b)
+{
+     //integer or float
+     if (((a->typeoftype()==1)||(a->typeoftype()==2))&&((b->typeoftype()==1)||(b->typeoftype()==2)))
+     {
+         DTBigIntegerType* k=new DTBigIntegerType(NULL, ((DTFloatTypes*)a)->tofloat()<=((DTFloatTypes*)b)->tofloat());
+         return DTVar::CreateNativeDTVarFromDTMain(k);
+     };
+}
+
+DTVar* CalculateEqually2op(DTMain* a,DTMain* b)
+{
+     //integer or float
+     if (((a->typeoftype()==1)||(a->typeoftype()==2))&&((b->typeoftype()==1)||(b->typeoftype()==2)))
+     {
+         DTBigIntegerType* k=new DTBigIntegerType(NULL, ((DTFloatTypes*)a)->tofloat()==((DTFloatTypes*)b)->tofloat());
+         return DTVar::CreateNativeDTVarFromDTMain(k);
+     };
+}
+
+DTVar* CalculateNotEqually2op(DTMain* a,DTMain* b)
+{
+     //integer or float
+     if (((a->typeoftype()==1)||(a->typeoftype()==2))&&((b->typeoftype()==1)||(b->typeoftype()==2)))
+     {
+         DTBigIntegerType* k=new DTBigIntegerType(NULL, ((DTFloatTypes*)a)->tofloat()!=((DTFloatTypes*)b)->tofloat());
          return DTVar::CreateNativeDTVarFromDTMain(k);
      };
 }

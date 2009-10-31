@@ -203,6 +203,8 @@ void CPRApplication::BuildTree(char* spath,char* sfullpath,ag::list<CPRTokenInfo
     else
         pTokens=&aTokens;
 
+    int iCommandsIndexOut=-1;
+
     char* path;
     if (spath==NULL)
     {
@@ -231,22 +233,92 @@ void CPRApplication::BuildTree(char* spath,char* sfullpath,ag::list<CPRTokenInfo
         {
             case 0://new expression
                 std::cout<<"(s0) start: "<<p->data.sCurrText<<", "<<p->data.petCurrType<<"\n";
-                if (p->data.sCurrText[0]=='if')
+                if ((p->data.sCurrText[0]=='}')||(iCommandsIndexOut==0))
                 {
-                    ;
-                }
+                    bool bCmdIndexOut=(iCommandsIndexOut==0);
+                    iCommandsIndexOut=-1;
+                    if (currparent->data->tntType==tntIFTrue)
+                    {
+                        if (!bCmdIndexOut)
+                            p=p->next;
+                        if (strcmp(p->data.sCurrText,"else")==0)
+                        {
+                            currparent=currparent->parent;
+                            for(ag::list<ag::tree<CPRTreeNode*>*>::member i=currparent->childs.head;i!=NULL;i=i->next)
+                            {
+                                if (i->data->data->tntType==tntIFFalse)
+                                {
+                                    currparent=i->data;
+                                    break;
+                                }
+                            }
+                            p=p->next;
+                            if (p->data.sCurrText[0]!='{')
+                            {
+                                iCommandsIndexOut=2;
+                                p=p->prev;
+                            }
+                        }else
+                        {
+                            currparent=currparent->parent->parent;
+                            p=p->prev;
+                        }
+                    }else
+                    {
+                        if (currparent->data->tntType==tntIFFalse)
+                        {
+                            currparent=currparent->parent->parent;
+                            if (bCmdIndexOut)
+                                p=p->prev;
+                        }else
+                        {
+                            currparent=currparent->parent;
+                            std::cout<<"(s0): level up\n";
+                        }
+                    }
+                }else
+                if (strcmp(p->data.sCurrText,"if")==0)
+                {
+                    p=p->next;
+                    int brackets=0;
+//                    brackets=(p->data.sCurrText[0]=='(')?brackets+1:brackets;
+//                    brackets=(p->data.sCurrText[0]==')')?brackets-1:brackets;
+                    std::string ex;
+                    do
+                    {
+                        ex+=p->data.sCurrText;
+                        brackets=(p->data.sCurrText[0]=='(')?brackets+1:brackets;
+                        brackets=(p->data.sCurrText[0]==')')?brackets-1:brackets;
+                        p=p->next;
+                    }while ((brackets>0)&&(p->data.petCurrType!=petEOF));
+                    str4=new char[ex.size()+1];
+                    strcpy(str4,ex.c_str());
+                    str4[ex.size()]=0;
+                    tp=new ag::tree<CPRTreeNode*>(currparent,MakeCPRTreeNode(tntIF,str4));
+                    tp->data->r1=MakePostfixFromInfix(str4);
+                    currparent=tp;
+                    tp=new ag::tree<CPRTreeNode*>(currparent,MakeCPRTreeNode(tntIFFalse,"False branch"));
+                    tp=new ag::tree<CPRTreeNode*>(currparent,MakeCPRTreeNode(tntIFTrue,"True branch"));
+                    currparent=tp;
+                    std::cout<<"(s0) IF "<<ex<<", TRUE level created && FALSE level created && TRUE level down\n";
+                    if (p->data.sCurrText[0]!='{')
+                    {
+                        iCommandsIndexOut=2;
+                        p=p->prev;
+                    }
+                }else
                 if (p->data.sCurrText[0]=='while')
                 {
                     ;
-                }
+                }else
                 if (p->data.sCurrText[0]=='for')
                 {
                     ;
-                }
+                }else
                 if (p->data.sCurrText[0]=='do')
                 {
                     ;
-                }
+                }else
                 if (p->data.sCurrText[0]=='#')
                 {
 					p=p->next;
@@ -279,10 +351,10 @@ void CPRApplication::BuildTree(char* spath,char* sfullpath,ag::list<CPRTokenInfo
 					    }else
 					    if ((str1[0]=='<')&&(str1[strlen(str1)-1]=='>'))
 					    {
-					        char* incpath=getenv("CPROMPTINCLUDE");
+					        char* incpath=getenv("CPROMPTINCLUDES");
 					        if(incpath==NULL)
 					        {
-					            std::cout<<"(FATAL ERROR) Enviromnent variable CPROMPTINCLUDE is not initialized\n";
+					            std::cout<<"(FATAL ERROR) Enviromnent variable CPROMPTINCLUDES is not initialized\n";
 					        }
 					        q2=incpath;
 					        if (incpath[strlen(incpath)-1]!='/')
@@ -326,11 +398,6 @@ void CPRApplication::BuildTree(char* spath,char* sfullpath,ag::list<CPRTokenInfo
                     currparent=tp;
                     std::cout<<"(s0): new level created && level down\n";
                 }else
-                if (p->data.sCurrText[0]=='}')
-                {
-                    currparent=currparent->parent;
-                    std::cout<<"(s0): level up\n";
-                }else
                 if (IsTypename(p)) // it is typename
                 {
                     str1=ReadTypename(p);
@@ -351,8 +418,9 @@ void CPRApplication::BuildTree(char* spath,char* sfullpath,ag::list<CPRTokenInfo
                     tp=new ag::tree<CPRTreeNode*>(currparent,MakeCPRTreeNode(tntExpression,str1));
                     tp->data->r1=MakePostfixFromInfix(str1);
                 };
+                if (iCommandsIndexOut>-1)
+                  iCommandsIndexOut--;
             break;
-
             case 1://<typename>_
                 std::cout<<"(s1) start\n";
                 str2=ReadIdent(&p, GetFileText(fpath));
@@ -499,129 +567,184 @@ ag::tree<CPRTreeNode*>* FindText1InTree(ag::tree<CPRTreeNode*>* T,char* sText)
 	return NULL;
 }
 
-void CPRApplication::ExecTree(ag::tree<CPRTreeNode*>* T)
+void CPRApplication::ExecTree(ag::tree<CPRTreeNode*>* T,ag::list<DTVar*>* ExternalVars)
 {
-    ag::list<DTVar*> Local;
-    bool was_ret=false;
-    char* sq_s;
-    if (T->data->tntType==tntFunction)
-    {//if it's function, load arguments from stack to Local. search from the end
-        int c=((ag::list<CPRTextDataType>*)(T->data->r1))->count();
-        ag::list<CPRTextDataType>::member pm=((ag::list<CPRTextDataType>*)(T->data->r1))->head;
-        for (int i=0;i<c;i++)
-        {
-            ag::list<DTVar*>::member m=Local.add_tail(aStack.pop());// названия
-            ((DTMain*)(m->data->T))->sIdent=pm->data.str2;
-            pm=pm->next;
-        }
-        std::string sq=T->data->text2;
-        sq+="_result";
-        sq_s=new char[sq.size()+1];
-        strcpy(sq_s,sq.c_str());
-        sq_s[sq.size()]=0;
-        DTVar* r=ParseDataTypeString(T->data->text,sq_s,NULL,&Local);
-        Local.add_tail(r);
-    }
-
-    ag::listmember< ag::tree<CPRTreeNode*>* >* p=(*T).childs.head;
-    while (p!=NULL)
+    try
     {
-        switch(p->data->data->tntType)
+        ag::list<DTVar*> Local;
+        if (ExternalVars!=NULL)
         {
-            case tntDeclareVar:
-                {
-                    //if (p->data->data->text3)
-                    std::cout<<"  :  Declarating variable: "<<p->data->data->text<<", "<<p->data->data->text2;
-                    if (p->data->data->text3!=NULL)
+            DTVar* q;
+            rpnlist* rl;
+            RPNStackElement* rse;
+            DTVar* dv;
+            for (ag::list<DTVar*>::member m=ExternalVars->head;m!=NULL;m=m->next)
+            {
+                Local.add_tail(m->data);
+            }
+            int b=0;
+            for (ag::list<DTVar*>::member m=Local.head;m!=NULL;m=m->next)
+            {
+                b++;
+                std::cout<<"Local["<<b<<"]="<<(((DTMain*)(((DTVar*)m->data)->T))->sIdent)<<"\n";
+            };
+        }
+        bool was_ret=false;
+        char* sq_s;
+        if (T->data->tntType==tntFunction)
+        {//if it's function, load arguments from stack to Local. search from the end
+            int c=((ag::list<CPRTextDataType>*)(T->data->r1))->count();
+            ag::list<CPRTextDataType>::member pm=((ag::list<CPRTextDataType>*)(T->data->r1))->head;
+            for (int i=0;i<c;i++)
+            {
+                ag::list<DTVar*>::member m=Local.add_tail(aStack.pop());// названия
+                ((DTMain*)(m->data->T))->sIdent=pm->data.str2;
+                pm=pm->next;
+            }
+            std::string sq=T->data->text2;
+            sq+="_result";
+            sq_s=new char[sq.size()+1];
+            strcpy(sq_s,sq.c_str());
+            sq_s[sq.size()]=0;
+            DTVar* r=ParseDataTypeString(T->data->text,sq_s,NULL,&Local);
+            Local.add_tail(r);
+        }
+
+        ag::listmember< ag::tree<CPRTreeNode*>* >* p=(*T).childs.head;
+        while (p!=NULL)
+        {
+            switch(p->data->data->tntType)
+            {
+                case tntDeclareVar:
                     {
-                        std::cout<<" = "<<p->data->data->text3;
+                        //if (p->data->data->text3)
+                        std::cout<<"  :  Declarating variable: "<<p->data->data->text<<", "<<p->data->data->text2;
+                        if (p->data->data->text3!=NULL)
+                        {
+                            std::cout<<" = "<<p->data->data->text3;
+                        }
+                        std::cout<<"; regular variable\n";
+                        try
+                        {
+                            std::string rpnstr;
+                            /*rpnstr=p->data->data->text2;
+                            rpnstr+="=";*/
+                            rpnstr+=(p->data->data->text3)?p->data->data->text3:"";
+                            DTVar* dtv=ParseDataTypeString(p->data->data->text,p->data->data->text2,//p->data->data->text3);
+                                   MakePostfixFromInfix((char*)rpnstr.c_str()), &Local);
+                            Local.add_tail(dtv);
+                            std::cout<<"variable was added to Local\n";
+                            std::cout<<((DTMain*)(dtv->T))->DTFullName()<<"\n";
+                        }catch(char* k)
+                        {
+                            std::cout<<"(Error): "<<k<<"\n";
+                        };
+                        //((DTMain*)(dtv->T))->;
+                        break;
                     }
-                    std::cout<<"; regular variable\n";
-                    try
+                case tntDeclareFunc:
                     {
-                        std::string rpnstr;
-                        /*rpnstr=p->data->data->text2;
-                        rpnstr+="=";*/
-                        rpnstr+=(p->data->data->text3)?p->data->data->text3:"";
-                        DTVar* dtv=ParseDataTypeString(p->data->data->text,p->data->data->text2,//p->data->data->text3);
-                               MakePostfixFromInfix((char*)rpnstr.c_str()), &Local);
-                        Local.add_tail(dtv);
-                        std::cout<<"variable was added to Local\n";
-                        std::cout<<((DTMain*)(dtv->T))->DTFullName()<<"\n";
-                    }catch(char* k)
+                        break;
+                    }
+                case tntFunction:
                     {
-                        std::cout<<"(Error): "<<k<<"\n";
-                    };
-                    //((DTMain*)(dtv->T))->;
-                    break;
-                }
-            case tntDeclareFunc:
-                {
-                    break;
-                }
-            case tntFunction:
-                {
-                    break;
-                }
-            case tntVarOutput:
-                {
-                    break;
-                }
-            case tntExpression:
-                {
-                    CalculateRPN((rpnlist*)p->data->data->r1, &Local);
-                    break;
-                }
-            case tntReturn:
-                {
-                    ag::stack<DTVar*>* g= CalculateRPN((rpnlist*)p->data->data->r1, &Local);
-                    DTVar* ret_var=FindVariable(sq_s,&Local);
-                    CalculateAssignation((DTMain*)(ret_var->T),(DTMain*)(g->pop()->T),&Local);
-                    aStack.push(ret_var);
-                    //if ((DTMain*)(ret_var->T)->typeoftype()==)
-                    return;
-                    break;
-                }
-            case tntDirective:
-                {
-                    DTVar* g;
-                    std::cout<<"#"<<p->data->data->text<<"\n";
-                    CPRParser* pd=new CPRParser(p->data->data->text);
-                    pd->Next();
-                    if (strcmp(pd->sCurrText,"TEST")==0)
+                        break;
+                    }
+                case tntVarOutput:
                     {
+                        break;
+                    }
+                case tntIF:
+                    {
+                        ag::stack<DTVar*>* g= CalculateRPN((rpnlist*)p->data->data->r1, &Local);
+                        DTMain* if_ex=((DTMain*)(g->pop()->T));
+                        if (if_ex->typeoftype()!=1)
+                        {
+                            char* qerr=new char[strlen("Result of expression at \"if\" must be integer type!")+1];
+                            strcpy(qerr,"Result of expression at \"if\" must be integer type!");
+                            qerr[strlen("Result of expression at \"if\" must be integer type!")]=0;
+
+                            throw qerr;
+                        }
+                        CPRTreeNodeType r;
+                        if (((DTIntegerTypes*)(if_ex))->toint()) r=tntIFTrue; else r=tntIFFalse;
+                        ag::tree<CPRTreeNode*>* call;
+                        for(ag::list<ag::tree<CPRTreeNode*>*>::member i=p->data->childs.head;i!=NULL;i=i->next)
+                        {
+                            if (i->data->data->tntType==r)
+                            {
+                                call=i->data;
+                                break;
+                            }
+                        }
+                        ExecTree(call,&Local);
+                        break;
+                    }
+                case tntIFTrue:
+                    {
+                        ExecTree(p->data);
+                        break;
+                    }
+                case tntExpression:
+                    {
+                        CalculateRPN((rpnlist*)p->data->data->r1, &Local);
+                        break;
+                    }
+                case tntReturn:
+                    {
+                        ag::stack<DTVar*>* g= CalculateRPN((rpnlist*)p->data->data->r1, &Local);
+                        DTVar* ret_var=FindVariable(sq_s,&Local);
+                        CalculateAssignation((DTMain*)(ret_var->T),(DTMain*)(g->pop()->T),&Local);
+                        aStack.push(ret_var);
+                        //if ((DTMain*)(ret_var->T)->typeoftype()==)
+                        return;
+                        break;
+                    }
+                case tntDirective:
+                    {
+                        DTVar* g;
+                        std::cout<<"#"<<p->data->data->text<<"\n";
+                        CPRParser* pd=new CPRParser(p->data->data->text);
                         pd->Next();
-                        if (strcmp(pd->sCurrText,"out")==0)
+                        if (strcmp(pd->sCurrText,"TEST")==0)
                         {
                             pd->Next();
-                            char* svar=pd->ReadIdent();
-                            std::cout<<"out("<<svar<<")\n";
-                            DTVar* x=FindVariable(svar,&Local);
-                            if (x!=NULL)
+                            if (strcmp(pd->sCurrText,"out")==0)
                             {
-                                std::cout<<svar<<" = "<< (((DTMain*)(x->T))->tostring()) <<"\n";
-                            }else
-                            {
-                                std::cout<<svar<<" not found!";
-                            }
-//                            for(ag::list<DTVar*>::member i=aVars.head;i!=NULL;i=i->next)
-//                            {
-//                                g=(DTVar*)(i->data);
-//                                if (((DTMain*)(g->T))->sIdent==NULL) continue;
-//                                if (strcmp((((DTMain*)(g->T))->sIdent),svar)==0)
-//                                {
-//                                    std::cout<<svar<<" = "<< (((DTMain*)(g->T))->tostring()) <<"\n";
-//                                    break;
-//                                };
-//                            };
+                                pd->Next();
+                                char* svar=pd->ReadIdent();
+                                std::cout<<"out("<<svar<<")\n";
+                                DTVar* x=FindVariable(svar,&Local);
+                                if (x!=NULL)
+                                {
+                                    std::cout<<svar<<" = "<< (((DTMain*)(x->T))->tostring()) <<"\n";
+                                }else
+                                {
+                                    std::cout<<svar<<" not found!";
+                                }
+    //                            for(ag::list<DTVar*>::member i=aVars.head;i!=NULL;i=i->next)
+    //                            {
+    //                                g=(DTVar*)(i->data);
+    //                                if (((DTMain*)(g->T))->sIdent==NULL) continue;
+    //                                if (strcmp((((DTMain*)(g->T))->sIdent),svar)==0)
+    //                                {
+    //                                    std::cout<<svar<<" = "<< (((DTMain*)(g->T))->tostring()) <<"\n";
+    //                                    break;
+    //                                };
+    //                            };
+                            };
                         };
-                    };
-                    break;
-                }
+                        break;
+                    }
+            };
+            p=p->next;
         };
-        p=p->next;
+        if (T->data->tntType==tntFunction)
+            aStack.push(FindVariable(sq_s,&Local));
+    }catch(char* k)
+    {
+        std::cout<<"(Error): "<<k<<"\n";
     };
-    aStack.push(FindVariable(sq_s,&Local));
 }
 
 void CPRApplication::ExecMainTree(ag::tree<CPRTreeNode*>* T)

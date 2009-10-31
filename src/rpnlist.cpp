@@ -317,7 +317,14 @@ rpnlist* MakePostfixFromInfix(char* infix)
 
         if (isoper(k,infix[i+1]))
         {
-            k2=(isoper(k,infix[i+1])==1)?' ':infix[i+1];
+            if (isoper(k,infix[i+1])==1)
+            {
+                k2=' ';
+            }else
+            {
+                i++;
+                k2=infix[i];
+            }
             if (!stack.empty())
             {
                 if (stack.tail->data->tp!=rsetAct) throw "(SYNTAX ERROR)";

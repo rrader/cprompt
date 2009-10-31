@@ -25,7 +25,7 @@ public:
     void ParseIt(ag::list<CPRTokenInfo>* pTok=NULL,char* sText=NULL);
     void BuildTree(char* spath=NULL,char* sfullpath=NULL,ag::list<CPRTokenInfo>* pTok=NULL);
     void ExecMainTree(ag::tree<CPRTreeNode*>* T);
-    void ExecTree(ag::tree<CPRTreeNode*>* T);
+    void ExecTree(ag::tree<CPRTreeNode*>* T,ag::list<DTVar*>* ExternalVars=NULL);
 
     char* ReadTypename(ag::list<CPRTokenInfo>::member& p);
     bool  IsTypename(ag::list<CPRTokenInfo>::member p);

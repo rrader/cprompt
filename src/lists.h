@@ -34,6 +34,18 @@ class list
         member tail;
         int count();
         bool empty(){ return this->tail==NULL; }
+        void copyfrom_ptr(list<T>* i)
+        {
+            void* k;
+            T* w;
+            for (member m=i->head;m!=NULL;m=m->next)
+            {
+                k=m->data;
+                w=new T;
+                memcpy(w,k,sizeof(T));
+                add_tail(*w);
+            }
+        };
 };
 
 template<typename T>

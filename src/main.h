@@ -14,6 +14,9 @@ enum CPRTreeNodeType
         tntDeclareFunc=3,
         tntExpression=4,
         tntReturn=5,
+        tntIF=6,
+        tntIFTrue=7,
+        tntIFFalse=8,
         tntDirective=98,
         tntVarOutput=99
     };
