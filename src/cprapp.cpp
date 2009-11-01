@@ -307,15 +307,30 @@ void CPRApplication::BuildTree(char* spath,char* sfullpath,ag::list<CPRTokenInfo
                         p=p->prev;
                     }
                 }else
-                if (p->data.sCurrText[0]=='while')
+                if (strcmp(p->data.sCurrText,"while")==0)
+                {
+                    p=p->next;
+                    int brackets=0;
+                    std::string ex;
+                    do
+                    {
+                        ex+=p->data.sCurrText;
+                        brackets=(p->data.sCurrText[0]=='(')?brackets+1:brackets;
+                        brackets=(p->data.sCurrText[0]==')')?brackets-1:brackets;
+                        p=p->next;
+                    }while ((brackets>0)&&(p->data.petCurrType!=petEOF));
+                    str4=new char[ex.size()+1];
+                    strcpy(str4,ex.c_str());
+                    str4[ex.size()]=0;
+                    tp=new ag::tree<CPRTreeNode*>(currparent,MakeCPRTreeNode(tntWhileLoop,str4));
+                    tp->data->r1=MakePostfixFromInfix(str4);
+                    currparent=tp;
+                }else
+                if (strcmp(p->data.sCurrText,"for")==0)
                 {
                     ;
                 }else
-                if (p->data.sCurrText[0]=='for')
-                {
-                    ;
-                }else
-                if (p->data.sCurrText[0]=='do')
+                if (strcmp(p->data.sCurrText,"do")==0)
                 {
                     ;
                 }else
@@ -680,9 +695,25 @@ void CPRApplication::ExecTree(ag::tree<CPRTreeNode*>* T,ag::list<DTVar*>* Extern
                         ExecTree(call,&Local);
                         break;
                     }
-                case tntIFTrue:
+                case tntWhileLoop:
                     {
-                        ExecTree(p->data);
+                        bool bOk;
+                        do
+                        {
+                            ag::stack<DTVar*>* g= CalculateRPN((rpnlist*)p->data->data->r1, &Local);
+                            DTMain* if_ex=((DTMain*)(g->pop()->T));
+                            if (if_ex->typeoftype()!=1)
+                            {
+                                char* qerr=new char[strlen("Result of expression at \"while\" must be integer type!")+1];
+                                strcpy(qerr,"Result of expression at \"while\" must be integer type!");
+                                qerr[strlen("Result of expression at \"while\" must be integer type!")]=0;
+
+                                throw qerr;
+                            }
+                            bOk=(((DTIntegerTypes*)(if_ex))->toint());
+                            if (bOk)
+                                ExecTree(p->data,&Local);
+                        }while (bOk);
                         break;
                     }
                 case tntExpression:

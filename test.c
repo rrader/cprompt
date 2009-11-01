@@ -1,26 +1,9 @@
 int main(int argc,char* argv[])
 {
-    double k1=4;
-    int k2=4;
-    if (k1/k2)
+    int k1=0;
+    while (k1<=50)
     {
-        #TEST out k1
-        k1=10;
-    }else
-    {
-        #TEST out k1
-        k1=20;
+        k1=k1+1;
+        #TEST out k1;
     }
-
-    if (k1==20)
-    {
-        #TEST out k1
-        k1=100;
-    }else
-    {
-        #TEST out k1
-        k1=200;
-    }
-
-    #TEST out k1
 }

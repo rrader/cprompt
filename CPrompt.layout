@@ -7,8 +7,8 @@
 	<File name="src/cpr_parser.h" open="0" top="0" tabpos="0">
 		<Cursor position="304" topLine="0" />
 	</File>
-	<File name="src/cprapp.cpp" open="1" top="0" tabpos="11">
-		<Cursor position="23427" topLine="650" />
+	<File name="src/cprapp.cpp" open="1" top="1" tabpos="11">
+		<Cursor position="7861" topLine="262" />
 	</File>
 	<File name="src/cprapp.h" open="1" top="0" tabpos="5">
 		<Cursor position="759" topLine="13" />
@@ -29,7 +29,7 @@
 		<Cursor position="3734" topLine="145" />
 	</File>
 	<File name="src/main.h" open="1" top="0" tabpos="7">
-		<Cursor position="124" topLine="0" />
+		<Cursor position="362" topLine="0" />
 	</File>
 	<File name="src/rpnlist.cpp" open="1" top="0" tabpos="3">
 		<Cursor position="11580" topLine="304" />
@@ -43,7 +43,7 @@
 	<File name="src/stringlist.h" open="0" top="0" tabpos="0">
 		<Cursor position="1213" topLine="12" />
 	</File>
-	<File name="test.c" open="1" top="1" tabpos="4">
-		<Cursor position="211" topLine="0" />
+	<File name="test.c" open="1" top="0" tabpos="4">
+		<Cursor position="117" topLine="0" />
 	</File>
 </CodeBlocks_layout_file>

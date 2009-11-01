@@ -143,6 +143,7 @@ void FillCPRTreeNode(CPRTreeNode* k,CPRTreeNodeType tp, char* text,char*text2,ch
 //char** f_argv;
 int main(int argc,char* argv[])
 {
+    std::cout<<"\n";
     std::cout<<"Sizeof DTVar: "<<sizeof(DTVar)<<"\n";
     ::argc=argc;
 	::argv=argv;

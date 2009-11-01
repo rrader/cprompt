@@ -17,6 +17,8 @@ enum CPRTreeNodeType
         tntIF=6,
         tntIFTrue=7,
         tntIFFalse=8,
+        tntWhileLoop=9,
+        tntGoto=10,
         tntDirective=98,
         tntVarOutput=99
     };
