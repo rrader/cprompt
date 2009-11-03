@@ -23,7 +23,7 @@ public:
     char* GetFileText(char* sFName);
 
     void ParseIt(ag::list<CPRTokenInfo>* pTok=NULL,char* sText=NULL);
-    void BuildTree(char* spath=NULL,char* sfullpath=NULL,ag::list<CPRTokenInfo>* pTok=NULL);
+    void BuildTree(char* spath=NULL,char* sfullpath=NULL,ag::list<CPRTokenInfo>* pTok=NULL,char* sftext=NULL,ag::tree<CPRTreeNode*>*parent=NULL);
     void ExecMainTree(ag::tree<CPRTreeNode*>* T);
     void ExecTree(ag::tree<CPRTreeNode*>* T,ag::list<DTVar*>* ExternalVars=NULL);
 
@@ -31,7 +31,7 @@ public:
     bool  IsTypename(ag::list<CPRTokenInfo>::member p);
     char* ReadIdent(ag::list<CPRTokenInfo>::member* p, char* FText);
     char* ReadToEOLN(ag::list<CPRTokenInfo>::member* p, char* FText);
-    char* ReadToSymbol(ag::list<CPRTokenInfo>::member& p,char _symb);
+    char* ReadToSymbol(ag::list<CPRTokenInfo>::member& p,char _symb,bool makespaces);
 
     DTVar* FindVariable(char* sName, ag::list<DTVar*>* local);
 

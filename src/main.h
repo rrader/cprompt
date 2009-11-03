@@ -19,6 +19,7 @@ enum CPRTreeNodeType
         tntIFFalse=8,
         tntWhileLoop=9,
         tntGoto=10,
+        tntForLoop=11,
         tntDirective=98,
         tntVarOutput=99
     };
@@ -40,6 +41,7 @@ struct CPRTreeNode
     CPRTreeNodeType tntType;
     void* r1;
     void* r2;
+    void* r3;
     char *text,*text2,*text3,*text4;
     CPRTreeNode& operator=(CPRTreeNode& _s)
     {
@@ -72,6 +74,6 @@ struct CPRTreeNode
     operator char*();
 };
 
-CPRTreeNode* MakeCPRTreeNode(CPRTreeNodeType tp=tntNone, char* text=NULL,char*text2=NULL,char*text3=NULL,char*text4=NULL,void* rx1=NULL,void* rx2=NULL);
+CPRTreeNode* MakeCPRTreeNode(CPRTreeNodeType tp=tntNone, char* text=NULL,char*text2=NULL,char*text3=NULL,char*text4=NULL,void* rx1=NULL,void* rx2=NULL,void* rx3=NULL);
 void FillCPRTreeNode(CPRTreeNode* k,CPRTreeNodeType tp=tntNone, char* text=NULL,char*text2=NULL,char*text3=NULL,char*text4=NULL);
 #endif // MAIN_H_INCLUDED

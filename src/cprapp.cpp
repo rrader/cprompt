@@ -143,13 +143,14 @@ bool CPRApplication::IsTypename(ag::list<CPRTokenInfo>::member p)
     return (aTypenames->findstr(p->data.sCurrText))!=NULL;
 }
 
-char* CPRApplication::ReadToSymbol(ag::list<CPRTokenInfo>::member& p,char _symb)
+char* CPRApplication::ReadToSymbol(ag::list<CPRTokenInfo>::member& p,char _symb,bool makespaces)
 {
     ag::stringlist sl;
     do
     {
         sl.addstr(p->data.sCurrText);
         p=p->next;
+        if (makespaces) sl.addstr(" ");
     }while((p->data.sCurrText[0]!=_symb)&&(p!=NULL));
     return sl.makestrfromelements();
 }
@@ -179,7 +180,7 @@ char* CPRApplication::ReadToEOLN(ag::list<CPRTokenInfo>::member* p, char* FText)
     return m;
 }
 
-void CPRApplication::BuildTree(char* spath,char* sfullpath,ag::list<CPRTokenInfo>* pTok)
+void CPRApplication::BuildTree(char* spath,char* sfullpath,ag::list<CPRTokenInfo>* pTok,char* sftext,ag::tree<CPRTreeNode*>*parent)
 {
     std::cout<<"CPRApplication::BuildTree()\n";
     int state=0;
@@ -187,7 +188,7 @@ void CPRApplication::BuildTree(char* spath,char* sfullpath,ag::list<CPRTokenInfo
     ag::tree<CPRTreeNode*>* funcparent=FindText1InTree(aTree,"FUNCTIONS");
     if (funcparent==NULL)
         funcparent=this->aTree->addchild(MakeCPRTreeNode(tntNone,"FUNCTIONS"));
-    ag::tree<CPRTreeNode*>* currparent=funcparent;
+    ag::tree<CPRTreeNode*>* currparent=(parent)?parent:funcparent;
     ag::tree<CPRTreeNode*>* tp;
     ag::list<CPRTextDataType>::member lm;
     CPRTreeNode *n;
@@ -206,7 +207,7 @@ void CPRApplication::BuildTree(char* spath,char* sfullpath,ag::list<CPRTokenInfo
     int iCommandsIndexOut=-1;
 
     char* path;
-    if (spath==NULL)
+    if ((spath==NULL)&&(sftext==NULL))
     {
         path=new char[strlen(sFilePath)+1];
         strcpy(path,sFilePath);
@@ -220,7 +221,7 @@ void CPRApplication::BuildTree(char* spath,char* sfullpath,ag::list<CPRTokenInfo
         { path=spath; }
 
     char* fpath;
-    if (spath==NULL)
+    if ((fpath==NULL)&&(sftext==NULL))
         { fpath=new char[strlen(sFilePath)+1]; strcpy(fpath,sFilePath); fpath[strlen(sFilePath)]=0; }
     else
         { fpath=sfullpath; }
@@ -265,6 +266,20 @@ void CPRApplication::BuildTree(char* spath,char* sfullpath,ag::list<CPRTokenInfo
                         }
                     }else
                     {
+                        if (currparent->data->tntType==tntForLoop)
+                        {
+                            ag::list<CPRTokenInfo>* aTo=new ag::list<CPRTokenInfo>;
+                            std::string rs1=currparent->data->text3;
+                            rs1+=';';
+                            ParseIt(aTo,(char*)rs1.c_str());
+                            for(ag::list<CPRTokenInfo>::member pa=aTo->head;pa!=NULL;pa=pa->next)
+                                std::cout << pa->data.sCurrText << ": " << pa->data.petCurrType << "; ";
+                            std::cout<<"\n";
+                            BuildTree(NULL,NULL,aTo,(char*)rs1.c_str(),currparent);
+                            if (bCmdIndexOut)
+                                p=p->prev;
+                            currparent=currparent->parent;
+                        }else
                         if (currparent->data->tntType==tntIFFalse)
                         {
                             currparent=currparent->parent->parent;
@@ -272,6 +287,8 @@ void CPRApplication::BuildTree(char* spath,char* sfullpath,ag::list<CPRTokenInfo
                                 p=p->prev;
                         }else
                         {
+                            if (bCmdIndexOut)
+                                p=p->prev;
                             currparent=currparent->parent;
                             std::cout<<"(s0): level up\n";
                         }
@@ -325,10 +342,43 @@ void CPRApplication::BuildTree(char* spath,char* sfullpath,ag::list<CPRTokenInfo
                     tp=new ag::tree<CPRTreeNode*>(currparent,MakeCPRTreeNode(tntWhileLoop,str4));
                     tp->data->r1=MakePostfixFromInfix(str4);
                     currparent=tp;
+                    if (p->data.sCurrText[0]!='{')
+                    {
+                        iCommandsIndexOut=2;
+                        p=p->prev;
+                    }
                 }else
                 if (strcmp(p->data.sCurrText,"for")==0)
                 {
-                    ;
+                    p=p->next;
+                    if (p->data.sCurrText[0]!='(')
+                        throw "'(' expected";
+                    p=p->next;
+                    str1=ReadToSymbol(p,';',true);
+                    p=p->next;
+                    str2=ReadToSymbol(p,';',false);
+                    p=p->next;
+                    str3=ReadToSymbol(p,')',false);
+
+                    ag::list<CPRTokenInfo>* aTo=new ag::list<CPRTokenInfo>;
+                    std::string rs1=str1;
+                    rs1+=';';
+                    ParseIt(aTo,(char*)rs1.c_str());
+                    for(ag::list<CPRTokenInfo>::member pa=aTo->head;pa!=NULL;pa=pa->next)
+                        std::cout << pa->data.sCurrText << ": " << pa->data.petCurrType << "; ";
+                    std::cout<<"\n";
+                    BuildTree(NULL,NULL,aTo,(char*)rs1.c_str(),currparent);
+                    tp=new ag::tree<CPRTreeNode*>(currparent,MakeCPRTreeNode(tntForLoop,str1,str2,str3));
+
+                    tp->data->r2=MakePostfixFromInfix(str2);
+                    tp->data->r3=MakePostfixFromInfix(str3);
+                    currparent=tp;
+                    p=p->next;
+                    if (p->data.sCurrText[0]!='{')
+                    {
+                        iCommandsIndexOut=2;
+                        p=p->prev;
+                    }
                 }else
                 if (strcmp(p->data.sCurrText,"do")==0)
                 {
@@ -340,7 +390,7 @@ void CPRApplication::BuildTree(char* spath,char* sfullpath,ag::list<CPRTokenInfo
 					if (strcmp(p->data.sCurrText,"include")==0)
 					{
 					    p=p->next;
-					    str1=ReadToEOLN(&p, GetFileText(fpath));
+					    str1=ReadToEOLN(&p, ((fpath)?GetFileText(fpath):sftext));
 					    str2=new char[strlen(str1)+strlen(path)+2];
                         std::string q2;
 					    if ((str1[0]=='"')&&(str1[strlen(str1)-1]=='"'))
@@ -362,14 +412,14 @@ void CPRApplication::BuildTree(char* spath,char* sfullpath,ag::list<CPRTokenInfo
                             for(ag::list<CPRTokenInfo>::member p=aTo->head;p!=NULL;p=p->next)
                                 std::cout << p->data.sCurrText << ": " << p->data.petCurrType << "; ";
                             std::cout<<"\n";
-                            BuildTree(path,str4,aTo);
+                            BuildTree(path,str4,aTo,NULL,currparent);
 					    }else
 					    if ((str1[0]=='<')&&(str1[strlen(str1)-1]=='>'))
 					    {
 					        char* incpath=getenv("CPROMPTINCLUDES");
 					        if(incpath==NULL)
 					        {
-					            std::cout<<"(FATAL ERROR) Enviromnent variable CPROMPTINCLUDES is not initialized\n";
+					            throw "(FATAL ERROR) Enviromnent variable CPROMPTINCLUDES is not initialized\n";
 					        }
 					        q2=incpath;
 					        if (incpath[strlen(incpath)-1]!='/')
@@ -396,7 +446,7 @@ void CPRApplication::BuildTree(char* spath,char* sfullpath,ag::list<CPRTokenInfo
 					    }
 					}else
 					{
-                        str1=ReadToEOLN(&p, GetFileText(fpath));
+                        str1=ReadToEOLN(&p, ((fpath)?GetFileText(fpath):sftext));
                         std::cout<<"(s0): directive: "<<str1<<"\n";
                         tp=new ag::tree<CPRTreeNode*>(currparent,MakeCPRTreeNode(tntDirective,str1));
 					}
@@ -422,13 +472,13 @@ void CPRApplication::BuildTree(char* spath,char* sfullpath,ag::list<CPRTokenInfo
                 if (strcmp(p->data.sCurrText,"return")==0)
                 {
                     p=p->next;
-                    str1=ReadToSymbol(p,';');
+                    str1=ReadToSymbol(p,';',false);
                     std::cout<<"(s0): '"<<str1<<"' return expression\n";
                     tp=new ag::tree<CPRTreeNode*>(currparent,MakeCPRTreeNode(tntReturn,str1));
                     tp->data->r1=MakePostfixFromInfix(str1);
                 }else
                 {
-                    str1=ReadToSymbol(p,';');
+                    str1=ReadToSymbol(p,';',false);
                     std::cout<<"(s0): '"<<str1<<"' expression\n";
                     tp=new ag::tree<CPRTreeNode*>(currparent,MakeCPRTreeNode(tntExpression,str1));
                     tp->data->r1=MakePostfixFromInfix(str1);
@@ -438,7 +488,7 @@ void CPRApplication::BuildTree(char* spath,char* sfullpath,ag::list<CPRTokenInfo
             break;
             case 1://<typename>_
                 std::cout<<"(s1) start\n";
-                str2=ReadIdent(&p, GetFileText(fpath));
+                str2=ReadIdent(&p, ((fpath)?GetFileText(fpath):sftext));
                 state=2;
                 std::cout<<"(s1): '"<<str2<<"' ident for typename '"<<str1<<"'\n";
             break;
@@ -464,7 +514,7 @@ void CPRApplication::BuildTree(char* spath,char* sfullpath,ag::list<CPRTokenInfo
                 if (strcmp(p->data.sCurrText,"=")==0)
                 {
                     p=p->next;
-                    str3=ReadToSymbol(p,';');
+                    str3=ReadToSymbol(p,';',false);
                     std::cout<<"(s3): init '"<<str2<<"' variable with '"<<str3<<"'\n";
 //                    CPRTreeNode* C=MakeCPRTreeNode(tntDeclareVar,NULL,NULL,NULL);
 //                    tp=new ag::tree<CPRTreeNode*>(currparent,C);
@@ -493,7 +543,7 @@ void CPRApplication::BuildTree(char* spath,char* sfullpath,ag::list<CPRTokenInfo
                     str1=ReadTypename(p);
                     lm->data.str1=str1;
                     p=p->next;
-                    str2=ReadIdent(&p, GetFileText(fpath));
+                    str2=ReadIdent(&p, ((fpath)?GetFileText(fpath):sftext));
                     lm->data.str2=str2;
                     p=p->next;
                     k=0;
@@ -707,6 +757,27 @@ void CPRApplication::ExecTree(ag::tree<CPRTreeNode*>* T,ag::list<DTVar*>* Extern
                                 char* qerr=new char[strlen("Result of expression at \"while\" must be integer type!")+1];
                                 strcpy(qerr,"Result of expression at \"while\" must be integer type!");
                                 qerr[strlen("Result of expression at \"while\" must be integer type!")]=0;
+
+                                throw qerr;
+                            }
+                            bOk=(((DTIntegerTypes*)(if_ex))->toint());
+                            if (bOk)
+                                ExecTree(p->data,&Local);
+                        }while (bOk);
+                        break;
+                    }
+                case tntForLoop:
+                    {
+                        bool bOk;
+                        do
+                        {
+                            ag::stack<DTVar*>* g= CalculateRPN((rpnlist*)p->data->data->r2, &Local);
+                            DTMain* if_ex=((DTMain*)(g->pop()->T));
+                            if (if_ex->typeoftype()!=1)
+                            {
+                                char* qerr=new char[strlen("Result of expression at \"for\" must be integer type!")+1];
+                                strcpy(qerr,"Result of expression at \"for\" must be integer type!");
+                                qerr[strlen("Result of expression at \"for\" must be integer type!")]=0;
 
                                 throw qerr;
                             }
