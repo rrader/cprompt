@@ -234,6 +234,7 @@ void CPRApplication::BuildTree(char* spath,char* sfullpath,ag::list<CPRTokenInfo
         {
             case 0://new expression
                 std::cout<<"(s0) start: "<<p->data.sCurrText<<", "<<p->data.petCurrType<<"\n";
+                if (p->data.sCurrText[0]==';'){} else
                 if ((p->data.sCurrText[0]=='}')||(iCommandsIndexOut==0))
                 {
                     bool bCmdIndexOut=(iCommandsIndexOut==0);
@@ -278,6 +279,16 @@ void CPRApplication::BuildTree(char* spath,char* sfullpath,ag::list<CPRTokenInfo
                             BuildTree(NULL,NULL,aTo,(char*)rs1.c_str(),currparent);
                             if (bCmdIndexOut)
                                 p=p->prev;
+                            currparent=currparent->parent;
+                        }else
+                        if (currparent->data->tntType==tntDoWhileLoop)
+                        {
+                            if (p->data.sCurrText[0]=='}') p=p->next;
+                            if (strcmp(p->data.sCurrText,"while")!=0)
+                                throw "There is no \"while\" in Do-While loop";
+                            p=p->next;
+                            str1=ReadToSymbol(p,';',false);
+                            currparent->data->r1=MakePostfixFromInfix(str1);
                             currparent=currparent->parent;
                         }else
                         if (currparent->data->tntType==tntIFFalse)
@@ -382,7 +393,14 @@ void CPRApplication::BuildTree(char* spath,char* sfullpath,ag::list<CPRTokenInfo
                 }else
                 if (strcmp(p->data.sCurrText,"do")==0)
                 {
-                    ;
+                    p=p->next;
+                    tp=new ag::tree<CPRTreeNode*>(currparent,MakeCPRTreeNode(tntDoWhileLoop));
+                    currparent=tp;
+                    if (p->data.sCurrText[0]!='{')
+                    {
+                        iCommandsIndexOut=2;
+                        p=p->prev;
+                    }
                 }else
                 if (p->data.sCurrText[0]=='#')
                 {
@@ -763,6 +781,26 @@ void CPRApplication::ExecTree(ag::tree<CPRTreeNode*>* T,ag::list<DTVar*>* Extern
                             bOk=(((DTIntegerTypes*)(if_ex))->toint());
                             if (bOk)
                                 ExecTree(p->data,&Local);
+                        }while (bOk);
+                        break;
+                    }
+                case tntDoWhileLoop:
+                    {
+                        bool bOk;
+                        do
+                        {
+                            ExecTree(p->data,&Local);
+                            ag::stack<DTVar*>* g= CalculateRPN((rpnlist*)p->data->data->r1, &Local);
+                            DTMain* if_ex=((DTMain*)(g->pop()->T));
+                            if (if_ex->typeoftype()!=1)
+                            {
+                                char* qerr=new char[strlen("Result of expression at \"while\" must be integer type!")+1];
+                                strcpy(qerr,"Result of expression at \"while\" must be integer type!");
+                                qerr[strlen("Result of expression at \"while\" must be integer type!")]=0;
+
+                                throw qerr;
+                            }
+                            bOk=(((DTIntegerTypes*)(if_ex))->toint());
                         }while (bOk);
                         break;
                     }

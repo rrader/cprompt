@@ -20,6 +20,7 @@ enum CPRTreeNodeType
         tntWhileLoop=9,
         tntGoto=10,
         tntForLoop=11,
+        tntDoWhileLoop=12,
         tntDirective=98,
         tntVarOutput=99
     };
