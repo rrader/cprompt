@@ -463,6 +463,23 @@ void CPRApplication::BuildTree(char* spath,char* sfullpath,ag::list<CPRTokenInfo
 					        std::cout<<"(ERROR) Erroneous include\n";
 					    }
 					}else
+					if (strcmp(p->data.sCurrText,"define")==0)
+					{
+					    CPRDefine cd;
+					    p=p->next;
+					    str1=ReadToEOLN(&p, ((fpath)?GetFileText(fpath):sftext));
+					    CPRParser pp(str1);
+					    pp.SetReadSpaces(true);
+					    str1=pp.ReadIdent();
+					    if (pp.sCurrText[0]==' ')
+					    {
+					        //const
+					        cd.dt=cdtConst;
+					        str2=pp.ReadToEOLN();
+					        std::cout<<"(s0): define const: "<<str1<<" = "<<str2<<"\n";
+					    }
+					    sDefines.add_tail(cd);
+					}else
 					{
                         str1=ReadToEOLN(&p, ((fpath)?GetFileText(fpath):sftext));
                         std::cout<<"(s0): directive: "<<str1<<"\n";

@@ -8,19 +8,19 @@
 		<Cursor position="304" topLine="0" />
 	</File>
 	<File name="src/cprapp.cpp" open="1" top="1" tabpos="11">
-		<Cursor position="11977" topLine="335" />
+		<Cursor position="16981" topLine="453" />
 	</File>
 	<File name="src/cprapp.h" open="1" top="0" tabpos="5">
-		<Cursor position="612" topLine="11" />
+		<Cursor position="261" topLine="3" />
 	</File>
 	<File name="src/cprexec.h" open="0" top="0" tabpos="0">
 		<Cursor position="81" topLine="0" />
 	</File>
 	<File name="src/cprtypes.cpp" open="1" top="0" tabpos="8">
-		<Cursor position="12496" topLine="617" />
+		<Cursor position="20641" topLine="844" />
 	</File>
 	<File name="src/cprtypes.h" open="1" top="0" tabpos="6">
-		<Cursor position="861" topLine="31" />
+		<Cursor position="51" topLine="0" />
 	</File>
 	<File name="src/lists.h" open="1" top="0" tabpos="9">
 		<Cursor position="175" topLine="0" />
@@ -29,10 +29,10 @@
 		<Cursor position="3450" topLine="143" />
 	</File>
 	<File name="src/main.h" open="1" top="0" tabpos="7">
-		<Cursor position="683" topLine="36" />
+		<Cursor position="683" topLine="0" />
 	</File>
 	<File name="src/rpnlist.cpp" open="1" top="0" tabpos="3">
-		<Cursor position="13856" topLine="450" />
+		<Cursor position="11452" topLine="384" />
 	</File>
 	<File name="src/rpnlist.h" open="1" top="0" tabpos="2">
 		<Cursor position="684" topLine="0" />
@@ -44,6 +44,6 @@
 		<Cursor position="1213" topLine="12" />
 	</File>
 	<File name="test.c" open="1" top="0" tabpos="4">
-		<Cursor position="101" topLine="0" />
+		<Cursor position="102" topLine="0" />
 	</File>
 </CodeBlocks_layout_file>

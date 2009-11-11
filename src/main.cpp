@@ -158,6 +158,7 @@ int main(int argc,char* argv[])
 		std::cout<<"Usage: cprompt \"/path/to/your/cprompt/script.cp\"\n";
 		return 0;
 	}
+
     App.SetFile(argv[1]);
 	std::cout<<"1. Parsing\n";
     App.ParseIt();

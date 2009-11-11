@@ -864,7 +864,7 @@ DTVar* ParseDataTypeString(char* sDT,char* sName, rpnlist* data, ag::list<DTVar*
             ss[strlen(ss)-1]=0;
             k->dtet=dtetPointer;
             //k->T=ParseDataTypeString(ss,sName,data);
-            k->T=new DTPtr(NULL,ss);
+            k->T=new DTPtr(sName,ss);
             return k;
         }
         std::cout<<sDT<<" is native data\n";

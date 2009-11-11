@@ -8,6 +8,21 @@
 #include "stack.h"
 #include <fstream>
 
+enum CPRDefineType
+    {
+        cdtNone=0,
+        cdtConst=1,
+        cdtMacro=2
+    };
+
+struct CPRDefine
+{
+    CPRDefineType dt;
+    char* name;
+    ag::stringlist* params;
+    char* expr;
+};
+
 class CPRApplication
 {
 public:
@@ -38,6 +53,7 @@ public:
     ag::list<CPRTokenInfo> aTokens;
     ag::list<DTVar*> aVars;
     ag::stringlist* aTypenames;
+    ag::list<CPRDefine> sDefines;
     ag::tree<CPRTreeNode*>* aTree;
     ag::stack<DTVar*> aStack;
 protected:

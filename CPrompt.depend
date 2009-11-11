@@ -88,7 +88,7 @@
 	"cprtypes.h"
 	"rpnlist.h"
 
-1257017297 source:/home/roma/projects/cprompt/trunk/src/cprtypes.cpp
+1257954759 source:/home/roma/projects/cprompt/trunk/src/cprtypes.cpp
 	"cprtypes.h"
 	<iostream>
 	<string.h>
@@ -120,7 +120,7 @@
 	"lists.h"
 	"string.h"
 
-1257283274 /home/roma/projects/cprompt/trunk/src/cprapp.h
+1257414772 /home/roma/projects/cprompt/trunk/src/cprapp.h
 	"trees.h"
 	"cpr_parser.h"
 	"main.h"
@@ -148,7 +148,7 @@
 	<fstream>
 	"cpr_parser.h"
 
-1257326555 source:/home/roma/projects/cprompt/trunk/src/cprapp.cpp
+1257964048 source:/home/roma/projects/cprompt/trunk/src/cprapp.cpp
 	<stdio.h>
 	<stdlib.h>
 	<new>
@@ -163,7 +163,7 @@
 
 1256157169 /home/roma/projects/cprompt/trunk/src/cprexec.h
 
-1257189818 source:/home/roma/projects/cprompt/trunk/src/main.cpp
+1257890116 source:/home/roma/projects/cprompt/trunk/src/main.cpp
 	<iostream>
 	<fstream>
 	<string.h>
@@ -184,4 +184,15 @@
 	"builtin.h"
 
 1256823001 /home/roma/projects/cprompt/trunk/src/builtin.h
+
+1257889902 source:/home/roma/projects/cprompt/trunk/src/callext.cpp
+	"callext.h"
+	<stdlib.h>
+	<dlfcn.h>
+	<stdio.h>
+	<string.h>
+
+1257889907 /home/roma/projects/cprompt/trunk/src/callext.h
+	"lists.h"
+	"cprtypes.h"
 
