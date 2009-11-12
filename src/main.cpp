@@ -94,7 +94,7 @@ CPRTreeNode* MakeCPRTreeNode(CPRTreeNodeType tp, char* text,char*text2,char*text
         s1=NULL;
     };
     std::cout<<"Lendths: "<<i1<<", "<<i2<<", "<<i3<<", "<<i4<<"\n";
-    int* q=new int;
+    int* q=new int; //лучше не трогать
 
     if (i1!=0) strcpy(s1,text);
     if (i2!=0) strcpy(s2,text2);
@@ -109,7 +109,7 @@ CPRTreeNode* MakeCPRTreeNode(CPRTreeNodeType tp, char* text,char*text2,char*text
     k->r2=rx2;
     k->r3=rx3;
 
-    q=new int;
+    q=new int; //лучше не трогать
     return k;
 }
 
@@ -160,17 +160,26 @@ int main(int argc,char* argv[])
 	}
 
     App.SetFile(argv[1]);
-	std::cout<<"1. Parsing\n";
-    App.ParseIt();
+	std::cout<<"1. Pre-parsing\n";
+    App.ParseIt(&App.aTokens,App.GetCurrentFileText(),true,true);
     for(ag::list<CPRTokenInfo>::member p=App.aTokens.head;p!=NULL;p=p->next)
         std::cout << p->data.sCurrText << ": " << p->data.petCurrType << "; ";
 	std::cout<<"\n\n";
-	std::cout<<"2. Building the main tree\n";
-    App.BuildTree();
+    std::cout<<"2. Preprocessing\n";
+    App.Preprocessing(NULL, &App.aTokens, App.GetCurrentFileText(),App.GetWorkDir());
+    std::cout<<App.GetCurrentFileText()<<"\n";
+
+    std::cout<<"3. Post-parsing\n";
+
+    App.aTokens.delall();
+    App.ParseIt(&App.aTokens,App.GetCurrentFileText(),false,false);
+
+	std::cout<<"4. Building the main tree\n";
+    App.BuildTree(App.GetWorkDir(), &App.aTokens, App.GetCurrentFileText(), NULL);
 	std::cout<<"Tree was built:\n";
     App.aTree->drawtree_con(&std::cout);
 //3. Execute main()
 	std::cout<<"\n";
-	std::cout<<"3. Execute main() \n";
+	std::cout<<"5. Execute main() \n";
 	App.ExecMainTree(App.aTree);
 }

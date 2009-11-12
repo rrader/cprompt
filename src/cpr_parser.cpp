@@ -275,7 +275,7 @@ void CPRParser::PassSymbs()
 char* CPRParser::ReadIdent()
 {
     std::cout<<"CPRParser::ReadIdent()\n";
-    int* J=new int;
+    int* J=new int; //не трогать!
     ag::set sAllowed;
     sAllowed=sIdentSymbs;
     int iPos1=iPosition-iCurrLength;

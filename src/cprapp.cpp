@@ -33,6 +33,10 @@ void CPRApplication::SetFile(char* sName)
     int tmp=strlen(sName);
     sFilePath=new char[tmp];
     strcpy(sFilePath,sName);
+
+    sWorkDir=new char[strlen(sName)];
+    strcpy(sWorkDir,sName);
+    while((sWorkDir[strlen(sWorkDir)-1]!='/')&&(strlen(sWorkDir)>0)) sWorkDir[strlen(sWorkDir)-1]=0;
 }
 
 char* CPRApplication::GetFileText(char* sFName)
@@ -51,7 +55,7 @@ char* CPRApplication::GetFileText(char* sFName)
     return res;
 }
 
-void CPRApplication::ParseIt(ag::list<CPRTokenInfo>* pTok,char* sText)
+void CPRApplication::ParseIt(ag::list<CPRTokenInfo>* pTok,char* sText,bool bReadEoln, bool bReadSpaces)
 {
     char* psText;
     if (sText==NULL)
@@ -62,6 +66,8 @@ void CPRApplication::ParseIt(ag::list<CPRTokenInfo>* pTok,char* sText)
         psText=sText;
     }
     CPRParser cParser(psText);
+    cParser.SetReadEOLN(bReadEoln);
+    cParser.SetReadSpaces(bReadSpaces);
     CPRTokenInfo i;
     ag::list<CPRTokenInfo>*pTokens;
     if (pTok!=NULL)
@@ -180,7 +186,120 @@ char* CPRApplication::ReadToEOLN(ag::list<CPRTokenInfo>::member* p, char* FText)
     return m;
 }
 
-void CPRApplication::BuildTree(char* spath,char* sfullpath,ag::list<CPRTokenInfo>* pTok,char* sftext,ag::tree<CPRTreeNode*>*parent)
+void CPRApplication::Preprocessing(char** saveto,ag::list<CPRTokenInfo>* pTok,char* sText, char* workdir)
+{
+    // it is importrant to parse text with enabled flags to read EOLNs and SPACES!!!
+    std::cout<<"CPRApplication::BuildTree()\n";
+    ag::list<CPRTokenInfo>* pTokens=(pTok!=NULL)?pTok:&aTokens;
+    char* fText=(sText!=NULL)?sText:GetCurrentFileText();
+    char* str1, *str2, *str3, *str4;
+    std::string q2;
+    int IncludeType=0;
+    int iPos;
+    bool bSomeActions;
+    do
+    {
+        bSomeActions=false;
+        for(ag::list<CPRTokenInfo>::member p=pTokens->head;(p!=NULL)&&(p->data.petCurrType!=petEOF);p=p->next)
+        {
+            if (p->data.sCurrText[0]=='#')
+            {
+                ag::list<CPRTokenInfo>::member tm=p;
+                bool isdirective=true;
+                p=p->prev;
+                while((p!=NULL)&&(p->data.petCurrType!=petEOLN)&&(p!=pTokens->head))
+                {
+                    if (p->data.petCurrType!=petSpace) {isdirective=false; break;}
+                    p=p->prev;
+                }
+                if (!isdirective) continue;
+                p=tm;
+                iPos=p->data.iStartPos;
+                do p=p->next; while (p->data.sCurrText[0]==' ');
+                if (strcmp(p->data.sCurrText,"include")==0)
+                {
+                    do p=p->next; while (p->data.sCurrText[0]==' ');
+
+                    IncludeType = (p->data.sCurrText[0]=='"')?1:( (p->data.sCurrText[0]=='<')?2:-1 );
+                    if (IncludeType==-1) throw "Invalid include directive";
+
+                    bSomeActions=true;
+
+                    if (IncludeType==1)
+                        {
+                            do p=p->next; while (p->data.sCurrText[0]==' ');
+                            q2=workdir;
+                            if (workdir[strlen(workdir)-1]!='/')
+                                q2+='/';
+                            str1=ReadToEOLN(&p, fText);
+                            while((str1[strlen(str1)-1]!='"')&&(strlen(str1)>0)) str1[strlen(str1)-1]=0;
+                            str1[strlen(str1)-1]=0;
+                            while(!isprint(str1[strlen(str1)-1])) str1[strlen(str1)-1]=0;
+                            q2+=str1;
+                            str1=new char[q2.size()];
+                            strcpy(str1,q2.c_str());
+                            str1[strlen(str1)]=0;
+                            std::cout<<"workdir : "<<workdir<<"\n";
+                            std::cout<<"filepath: "<<str1<<"\n";
+
+                            ag::list<CPRTokenInfo>* aTo=new ag::list<CPRTokenInfo>;
+
+                            str1=GetFileText(str1);
+                            str2=new char[ strlen(fText) + strlen(str1) ];
+                            strncpy(str2,fText,iPos);
+                            strcpy(str2+iPos,str1);
+                            strncpy(str2+iPos+strlen(str1),fText+p->data.iStartPos,strlen(fText)-p->data.iStartPos);
+                            fText=str2;
+                            pTokens->delall();
+                            ParseIt(pTokens,fText,true,true); //можно сильно оптимизировать - ненадо каждый раз парсить заново
+                            break;
+                        }else
+                        if (IncludeType==2)
+                        {
+                            char* incpath=getenv("CPROMPTINCLUDES");
+                            if(incpath==NULL)
+                            {
+                                throw "(FATAL ERROR) Enviromnent variable CPROMPTINCLUDES is not initialized\n";
+                            }
+                            q2=incpath;
+                            if (incpath[strlen(incpath)-1]!='/')
+                                q2+='/';
+
+                            do p=p->next; while (p->data.sCurrText[0]==' ');
+                            str1=ReadToEOLN(&p, fText);
+                            while((str1[strlen(str1)-1]!='>')&&(strlen(str1)>0)) str1[strlen(str1)-1]=0;
+                            str1[strlen(str1)-1]=0;
+                            while(!isprint(str1[strlen(str1)-1])) str1[strlen(str1)-1]=0;
+
+                            q2+=str1;
+                            str1=new char[q2.size()];
+                            strcpy(str1,q2.c_str());
+                            str1[strlen(str1)]=0;
+
+                            std::cout<<"workdir : "<<workdir<<"\n";
+                            std::cout<<"filepath: "<<str1<<"\n";
+
+                            str1=GetFileText(str1);
+                            str2=new char[ strlen(fText) + strlen(str1) ];
+                            strncpy(str2,fText,iPos);
+                            strcpy(str2+iPos,str1);
+                            strncpy(str2+iPos+strlen(str1),fText+p->data.iStartPos,strlen(fText)-p->data.iStartPos);
+                            fText=str2;
+                            pTokens->delall();
+                            ParseIt(pTokens,fText,true,true); //можно сильно оптимизировать - ненадо каждый раз парсить заново
+                            break;
+                        }else
+                        {
+                            std::cout<<"(ERROR) Erroneous include\n";
+                        }
+                };
+            }
+        };
+    }while(bSomeActions);
+    (saveto!=NULL)?*saveto:sPText = fText;
+}
+
+void CPRApplication::BuildTree(char* workpath, ag::list<CPRTokenInfo>* pTok,char* sftext,ag::tree<CPRTreeNode*>*parent)
 {
     std::cout<<"CPRApplication::BuildTree()\n";
     int state=0;
@@ -206,30 +325,8 @@ void CPRApplication::BuildTree(char* spath,char* sfullpath,ag::list<CPRTokenInfo
 
     int iCommandsIndexOut=-1;
 
-    char* path;
-    if ((spath==NULL)&&(sftext==NULL))
-    {
-        path=new char[strlen(sFilePath)+1];
-        strcpy(path,sFilePath);
-        path[strlen(sFilePath)]=0;
-        while((path[strlen(path)-1]!='/')&&(strlen(path)>0))
-        {
-            path[strlen(path)-1]=0;
-        }
-    }
-    else
-        { path=spath; }
-
-    char* fpath;
-    if ((fpath==NULL)&&(sftext==NULL))
-        { fpath=new char[strlen(sFilePath)+1]; strcpy(fpath,sFilePath); fpath[strlen(sFilePath)]=0; }
-    else
-        { fpath=sfullpath; }
-
-
     for(ag::list<CPRTokenInfo>::member p=pTokens->head;(p!=NULL)&&(p->data.petCurrType!=petEOF);p=p->next)
     {
-        //l=new int;
         switch (state)
         {
             case 0://new expression
@@ -276,7 +373,7 @@ void CPRApplication::BuildTree(char* spath,char* sfullpath,ag::list<CPRTokenInfo
                             for(ag::list<CPRTokenInfo>::member pa=aTo->head;pa!=NULL;pa=pa->next)
                                 std::cout << pa->data.sCurrText << ": " << pa->data.petCurrType << "; ";
                             std::cout<<"\n";
-                            BuildTree(NULL,NULL,aTo,(char*)rs1.c_str(),currparent);
+                            BuildTree(workpath,aTo,(char*)rs1.c_str(),currparent);
                             if (bCmdIndexOut)
                                 p=p->prev;
                             currparent=currparent->parent;
@@ -309,8 +406,6 @@ void CPRApplication::BuildTree(char* spath,char* sfullpath,ag::list<CPRTokenInfo
                 {
                     p=p->next;
                     int brackets=0;
-//                    brackets=(p->data.sCurrText[0]=='(')?brackets+1:brackets;
-//                    brackets=(p->data.sCurrText[0]==')')?brackets-1:brackets;
                     std::string ex;
                     do
                     {
@@ -378,7 +473,7 @@ void CPRApplication::BuildTree(char* spath,char* sfullpath,ag::list<CPRTokenInfo
                     for(ag::list<CPRTokenInfo>::member pa=aTo->head;pa!=NULL;pa=pa->next)
                         std::cout << pa->data.sCurrText << ": " << pa->data.petCurrType << "; ";
                     std::cout<<"\n";
-                    BuildTree(NULL,NULL,aTo,(char*)rs1.c_str(),currparent);
+                    BuildTree(workpath,aTo,(char*)rs1.c_str(),currparent);
                     tp=new ag::tree<CPRTreeNode*>(currparent,MakeCPRTreeNode(tntForLoop,str1,str2,str3));
 
                     tp->data->r2=MakePostfixFromInfix(str2);
@@ -408,21 +503,21 @@ void CPRApplication::BuildTree(char* spath,char* sfullpath,ag::list<CPRTokenInfo
 					if (strcmp(p->data.sCurrText,"include")==0)
 					{
 					    p=p->next;
-					    str1=ReadToEOLN(&p, ((fpath)?GetFileText(fpath):sftext));
-					    str2=new char[strlen(str1)+strlen(path)+2];
+					    str1=ReadToEOLN(&p, sftext);
+					    str2=new char[strlen(str1)+strlen(workpath)+2];
                         std::string q2;
 					    if ((str1[0]=='"')&&(str1[strlen(str1)-1]=='"'))
 					    {
 					        str1++;
 					        str1[strlen(str1)-1]=0;
-					        q2=path;
-					        if (path[strlen(path)-1]!='/')
+					        q2=workpath;
+					        if (workpath[strlen(workpath)-1]!='/')
                                 q2+='/';
                             q2+=str1;
                             str4=new char[q2.size()+1];
                             strcpy(str4,q2.c_str());
                             str4[q2.size()]=0;
-                            std::cout<<"path 1: "<<path<<"\n";
+                            std::cout<<"path 1: "<<workpath<<"\n";
                             std::cout<<"path 2: "<<str4<<"\n";
 
                             ag::list<CPRTokenInfo>* aTo=new ag::list<CPRTokenInfo>;
@@ -430,7 +525,7 @@ void CPRApplication::BuildTree(char* spath,char* sfullpath,ag::list<CPRTokenInfo
                             for(ag::list<CPRTokenInfo>::member p=aTo->head;p!=NULL;p=p->next)
                                 std::cout << p->data.sCurrText << ": " << p->data.petCurrType << "; ";
                             std::cout<<"\n";
-                            BuildTree(path,str4,aTo,NULL,currparent);
+                            BuildTree(workpath,aTo,GetFileText(str4),currparent);
 					    }else
 					    if ((str1[0]=='<')&&(str1[strlen(str1)-1]=='>'))
 					    {
@@ -457,7 +552,7 @@ void CPRApplication::BuildTree(char* spath,char* sfullpath,ag::list<CPRTokenInfo
                             for(ag::list<CPRTokenInfo>::member p=aTo->head;p!=NULL;p=p->next)
                                 std::cout << p->data.sCurrText << ": " << p->data.petCurrType << "; ";
                             std::cout<<"\n";
-                            BuildTree(str3,str4,aTo);
+                            BuildTree(workpath,aTo,GetFileText(str4),currparent);
 					    }else
 					    {
 					        std::cout<<"(ERROR) Erroneous include\n";
@@ -467,7 +562,7 @@ void CPRApplication::BuildTree(char* spath,char* sfullpath,ag::list<CPRTokenInfo
 					{
 					    CPRDefine cd;
 					    p=p->next;
-					    str1=ReadToEOLN(&p, ((fpath)?GetFileText(fpath):sftext));
+					    str1=ReadToEOLN(&p, sftext);
 					    CPRParser pp(str1);
 					    pp.SetReadSpaces(true);
 					    str1=pp.ReadIdent();
@@ -481,7 +576,7 @@ void CPRApplication::BuildTree(char* spath,char* sfullpath,ag::list<CPRTokenInfo
 					    sDefines.add_tail(cd);
 					}else
 					{
-                        str1=ReadToEOLN(&p, ((fpath)?GetFileText(fpath):sftext));
+                        str1=ReadToEOLN(&p, sftext);
                         std::cout<<"(s0): directive: "<<str1<<"\n";
                         tp=new ag::tree<CPRTreeNode*>(currparent,MakeCPRTreeNode(tntDirective,str1));
 					}
@@ -523,7 +618,7 @@ void CPRApplication::BuildTree(char* spath,char* sfullpath,ag::list<CPRTokenInfo
             break;
             case 1://<typename>_
                 std::cout<<"(s1) start\n";
-                str2=ReadIdent(&p, ((fpath)?GetFileText(fpath):sftext));
+                str2=ReadIdent(&p, sftext);
                 state=2;
                 std::cout<<"(s1): '"<<str2<<"' ident for typename '"<<str1<<"'\n";
             break;
@@ -558,7 +653,7 @@ void CPRApplication::BuildTree(char* spath,char* sfullpath,ag::list<CPRTokenInfo
                     tp=new ag::tree<CPRTreeNode*>(currparent,C);
                 }else
                     tp=new ag::tree<CPRTreeNode*>(currparent,MakeCPRTreeNode(tntDeclareVar,str1,str2,NULL));
-                q=new int;
+                q=new int; //не трогать!
                 state=0;
             break;
 
@@ -578,7 +673,7 @@ void CPRApplication::BuildTree(char* spath,char* sfullpath,ag::list<CPRTokenInfo
                     str1=ReadTypename(p);
                     lm->data.str1=str1;
                     p=p->next;
-                    str2=ReadIdent(&p, ((fpath)?GetFileText(fpath):sftext));
+                    str2=ReadIdent(&p, sftext);
                     lm->data.str2=str2;
                     p=p->next;
                     k=0;
