@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_layout_file>
 	<ActiveTarget name="Debug" />
-	<File name="src/cpr_parser.cpp" open="0" top="0" tabpos="0">
-		<Cursor position="598" topLine="36" />
+	<File name="src/cpr_parser.cpp" open="1" top="0" tabpos="12">
+		<Cursor position="6839" topLine="274" />
 	</File>
-	<File name="src/cpr_parser.h" open="0" top="0" tabpos="0">
-		<Cursor position="304" topLine="0" />
+	<File name="src/cpr_parser.h" open="1" top="0" tabpos="13">
+		<Cursor position="270" topLine="0" />
 	</File>
-	<File name="src/cprapp.cpp" open="1" top="0" tabpos="11">
-		<Cursor position="15010" topLine="392" />
+	<File name="src/cprapp.cpp" open="1" top="1" tabpos="11">
+		<Cursor position="10871" topLine="301" />
 	</File>
 	<File name="src/cprapp.h" open="1" top="0" tabpos="5">
-		<Cursor position="1649" topLine="51" />
+		<Cursor position="1796" topLine="50" />
 	</File>
 	<File name="src/cprexec.h" open="0" top="0" tabpos="0">
 		<Cursor position="81" topLine="0" />
 	</File>
 	<File name="src/cprtypes.cpp" open="1" top="0" tabpos="8">
-		<Cursor position="20641" topLine="844" />
+		<Cursor position="20060" topLine="844" />
 	</File>
 	<File name="src/cprtypes.h" open="1" top="0" tabpos="6">
 		<Cursor position="51" topLine="0" />
@@ -26,13 +26,13 @@
 		<Cursor position="175" topLine="0" />
 	</File>
 	<File name="src/main.cpp" open="1" top="0" tabpos="1">
-		<Cursor position="3760" topLine="148" />
+		<Cursor position="4067" topLine="155" />
 	</File>
 	<File name="src/main.h" open="1" top="0" tabpos="7">
 		<Cursor position="683" topLine="0" />
 	</File>
 	<File name="src/rpnlist.cpp" open="1" top="0" tabpos="3">
-		<Cursor position="11452" topLine="384" />
+		<Cursor position="11452" topLine="372" />
 	</File>
 	<File name="src/rpnlist.h" open="1" top="0" tabpos="2">
 		<Cursor position="684" topLine="0" />
@@ -43,7 +43,7 @@
 	<File name="src/stringlist.h" open="0" top="0" tabpos="0">
 		<Cursor position="1213" topLine="12" />
 	</File>
-	<File name="test.c" open="1" top="1" tabpos="4">
-		<Cursor position="136" topLine="0" />
+	<File name="test.c" open="1" top="0" tabpos="4">
+		<Cursor position="17" topLine="0" />
 	</File>
 </CodeBlocks_layout_file>

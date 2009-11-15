@@ -188,7 +188,8 @@ char* CPRApplication::ReadToEOLN(ag::list<CPRTokenInfo>::member* p, char* FText)
 
 void CPRApplication::Preprocessing(char** saveto,ag::list<CPRTokenInfo>* pTok,char* sText, char* workdir)
 {
-    // it is importrant to parse text with enabled flags to read EOLNs and SPACES!!!
+    //работает через ж
+    // Внимание!!! Очень важно передавать список токенов pTok, распарсеных с флагами ReadEOLN и ReadSpaces в true
     std::cout<<"CPRApplication::BuildTree()\n";
     ag::list<CPRTokenInfo>* pTokens=(pTok!=NULL)?pTok:&aTokens;
     char* fText=(sText!=NULL)?sText:GetCurrentFileText();
@@ -197,6 +198,7 @@ void CPRApplication::Preprocessing(char** saveto,ag::list<CPRTokenInfo>* pTok,ch
     int IncludeType=0;
     int iPos;
     bool bSomeActions;
+    //  includes
     do
     {
         bSomeActions=false;
@@ -232,6 +234,7 @@ void CPRApplication::Preprocessing(char** saveto,ag::list<CPRTokenInfo>* pTok,ch
                             if (workdir[strlen(workdir)-1]!='/')
                                 q2+='/';
                             str1=ReadToEOLN(&p, fText);
+                            do p=p->next; while (p->data.sCurrText[0]==' ');
                             while((str1[strlen(str1)-1]!='"')&&(strlen(str1)>0)) str1[strlen(str1)-1]=0;
                             str1[strlen(str1)-1]=0;
                             while(!isprint(str1[strlen(str1)-1])) str1[strlen(str1)-1]=0;
@@ -267,6 +270,7 @@ void CPRApplication::Preprocessing(char** saveto,ag::list<CPRTokenInfo>* pTok,ch
 
                             do p=p->next; while (p->data.sCurrText[0]==' ');
                             str1=ReadToEOLN(&p, fText);
+                            do p=p->next; while (p->data.sCurrText[0]==' ');
                             while((str1[strlen(str1)-1]!='>')&&(strlen(str1)>0)) str1[strlen(str1)-1]=0;
                             str1[strlen(str1)-1]=0;
                             while(!isprint(str1[strlen(str1)-1])) str1[strlen(str1)-1]=0;
@@ -296,6 +300,185 @@ void CPRApplication::Preprocessing(char** saveto,ag::list<CPRTokenInfo>* pTok,ch
             }
         };
     }while(bSomeActions);
+
+
+    bSomeActions=false;
+    int dirstart,dirend;
+    do
+    {
+        bSomeActions=false;
+        for(ag::list<CPRTokenInfo>::member p=pTokens->head;(p!=NULL)&&(p->data.petCurrType!=petEOF);p=p->next)
+        {
+            if (p->data.sCurrText[0]=='#')
+            {
+                dirstart=p->data.iStartPos;
+                ag::list<CPRTokenInfo>::member tm=p;
+                bool isdirective=true;
+                p=p->prev;
+                while((p!=NULL)&&(p->data.petCurrType!=petEOLN)&&(p!=pTokens->head))
+                {
+                    if (p->data.petCurrType!=petSpace) {isdirective=false; break;}
+                    p=p->prev;
+                }
+                if (!isdirective) continue;
+                p=tm;
+                iPos=p->data.iStartPos;
+                do p=p->next; while (p->data.sCurrText[0]==' ');
+                if (strcmp(p->data.sCurrText,"define")==0)
+                {
+                    do p=p->next; while (p->data.sCurrText[0]==' ');
+                    str1=ReadToEOLN(&p, fText);
+                    p=p->next;
+                    dirend=p->data.iStartPos;
+                    ag::list<CPRTokenInfo>* to=new ag::list<CPRTokenInfo>;
+                    ParseIt(to,str1,true,true);
+                    ag::stringlist deflist;
+
+                    ag::list<CPRTokenInfo>::member p0,p2;
+                    p0=to->head;
+                    while(p0->data.sCurrText[0]!=' ')
+                    {
+                        //проверить на литералы
+                        deflist.add_tail(p0->data.sCurrText);
+                        str1+=p0->data.iCurrLength;
+                        p0=p0->next;
+                    }
+                    str1+=p0->data.iCurrLength;
+                    //неподеццки оптимизировать!!!
+                    ag::stringlist::member p3;
+
+                    for(ag::list<CPRTokenInfo>::member p1=p;(p1!=NULL)&&(p1->data.petCurrType!=petEOF);p1=p1->next)
+                    {
+                        // ААААААААААААААА! а вдруг оно в строке?!?!?!
+                        p2=p1;
+                        p3=deflist.head;
+                        while(strcmp(p1->data.sCurrText,p3->data)==0)  // проверить на литерал
+                        {
+                            p3=p3->next;
+                            p1=p1->next;
+                            if (p3==NULL)
+                            {
+                                bSomeActions=true;
+                                //НАШЛИ!!!
+                                str2=new char[p2->data.iStartPos+strlen(str1)+(strlen(fText)-p1->data.iStartPos)+1];
+                                strncpy(str2,fText,p2->data.iStartPos);
+                                strcpy(str2+p2->data.iStartPos,str1);
+                                strcpy(str2+p2->data.iStartPos+strlen(str1),fText+p1->data.iStartPos);
+                                str2[strlen(str2)]=0;
+                                fText=str2;
+                                pTokens->delall();
+                                ParseIt(pTokens,fText,true,true); //можно сильно оптимизировать - ненадо каждый раз парсить заново
+                                break;
+                            }
+                        }
+                        if (bSomeActions)
+                            break;
+                    }
+                    if (bSomeActions)
+                        break;
+                }
+            }
+        }
+    }while(bSomeActions);
+
+
+    do
+    {
+        bSomeActions=false;
+        for(ag::list<CPRTokenInfo>::member p=pTokens->head;(p!=NULL)&&(p->data.petCurrType!=petEOF);p=p->next)
+        {
+            if (p->data.sCurrText[0]=='#')
+            {
+                ag::list<CPRTokenInfo>::member tm=p;
+                bool isdirective=true;
+                p=p->prev;
+                while((p!=NULL)&&(p->data.petCurrType!=petEOLN)&&(p!=pTokens->head))
+                {
+                    if (p->data.petCurrType!=petSpace) {isdirective=false; break;}
+                    p=p->prev;
+                }
+                if (!isdirective) continue;
+                p=tm;
+                iPos=p->data.iStartPos;
+                do p=p->next; while (p->data.sCurrText[0]==' ');
+                if (strcmp(p->data.sCurrText,"TEST")==0)
+                {
+                    bSomeActions=true;
+                    str2=new char[strlen(fText)];
+                    strncpy(str2,fText,iPos);
+                    strcpy(str2+iPos,fText+p->data.iStartPos);
+
+                    fText=str2;
+                    pTokens->delall();
+                    ParseIt(pTokens,fText,true,true); //можно сильно оптимизировать - ненадо каждый раз парсить заново
+                    break;
+                };
+            }
+        };
+    }while(bSomeActions);
+
+    bSomeActions=false;
+
+    do
+    {
+        bSomeActions=false;
+        for(ag::list<CPRTokenInfo>::member p=pTokens->head;(p!=NULL)&&(p->data.petCurrType!=petEOF);p=p->next)
+        {
+            if (p->data.sCurrText[0]=='#')
+            {
+                dirstart=p->data.iStartPos;
+                ag::list<CPRTokenInfo>::member tm=p;
+                bool isdirective=true;
+                p=p->prev;
+                while((p!=NULL)&&(p->data.petCurrType!=petEOLN)&&(p!=pTokens->head))
+                {
+                    if (p->data.petCurrType!=petSpace) {isdirective=false; break;}
+                    p=p->prev;
+                }
+                if (!isdirective) continue;
+                p=tm;
+                iPos=p->data.iStartPos;
+                bSomeActions=true;
+                do p=p->next; while (p->data.sCurrText[0]==' ');
+                if (strcmp(p->data.sCurrText,"define")==0)
+                {
+                    do p=p->next; while (p->data.sCurrText[0]==' ');
+                    str1=ReadToEOLN(&p, fText);
+                    p=p->next;
+                    dirend=p->data.iStartPos;
+                    str2=new char[dirstart+(strlen(fText)-dirend)+1];
+                    strncpy(str2,fText,dirstart);
+                    strcpy(str2+dirstart,fText+dirend);
+                    str2[dirstart+(strlen(fText)-dirend)]=0;
+
+                    fText=str2;
+                    pTokens->delall();
+                    ParseIt(pTokens,fText,true,true); //можно сильно оптимизировать - ненадо каждый раз парсить заново
+                    break;
+                }else
+                if (strcmp(p->data.sCurrText,"TEST")==0)
+                {
+                    do p=p->next; while (p->data.sCurrText[0]==' ');
+                    str1=ReadToEOLN(&p, fText);
+                    p=p->next;
+                    dirend=p->data.iStartPos;
+                    int* U=new int;
+                    str2=new char[dirstart+(strlen(fText)-dirend)];
+                    strncpy(str2,fText,dirstart);
+                    strcpy(str2+dirstart,fText+dirend);
+                    fText=str2;
+                    pTokens->delall();
+                    ParseIt(pTokens,fText,true,true); //можно сильно оптимизировать - ненадо каждый раз парсить заново
+                    break;
+                }else
+                {
+                    bSomeActions=false;
+                    throw "Unknown directive";
+                }
+            }
+        }
+    }while(bSomeActions);
+
     (saveto!=NULL)?*saveto:sPText = fText;
 }
 
@@ -497,89 +680,11 @@ void CPRApplication::BuildTree(char* workpath, ag::list<CPRTokenInfo>* pTok,char
                         p=p->prev;
                     }
                 }else
-                if (p->data.sCurrText[0]=='#')
+                if (strcmp(p->data.sCurrText,"TEST")==0)
                 {
-					p=p->next;
-					if (strcmp(p->data.sCurrText,"include")==0)
-					{
-					    p=p->next;
-					    str1=ReadToEOLN(&p, sftext);
-					    str2=new char[strlen(str1)+strlen(workpath)+2];
-                        std::string q2;
-					    if ((str1[0]=='"')&&(str1[strlen(str1)-1]=='"'))
-					    {
-					        str1++;
-					        str1[strlen(str1)-1]=0;
-					        q2=workpath;
-					        if (workpath[strlen(workpath)-1]!='/')
-                                q2+='/';
-                            q2+=str1;
-                            str4=new char[q2.size()+1];
-                            strcpy(str4,q2.c_str());
-                            str4[q2.size()]=0;
-                            std::cout<<"path 1: "<<workpath<<"\n";
-                            std::cout<<"path 2: "<<str4<<"\n";
-
-                            ag::list<CPRTokenInfo>* aTo=new ag::list<CPRTokenInfo>;
-                            ParseIt(aTo,GetFileText(str4));
-                            for(ag::list<CPRTokenInfo>::member p=aTo->head;p!=NULL;p=p->next)
-                                std::cout << p->data.sCurrText << ": " << p->data.petCurrType << "; ";
-                            std::cout<<"\n";
-                            BuildTree(workpath,aTo,GetFileText(str4),currparent);
-					    }else
-					    if ((str1[0]=='<')&&(str1[strlen(str1)-1]=='>'))
-					    {
-					        char* incpath=getenv("CPROMPTINCLUDES");
-					        if(incpath==NULL)
-					        {
-					            throw "(FATAL ERROR) Enviromnent variable CPROMPTINCLUDES is not initialized\n";
-					        }
-					        q2=incpath;
-					        if (incpath[strlen(incpath)-1]!='/')
-                                q2+='/';
-                            str3=new char[q2.size()+1];
-                            strcpy(str3,q2.c_str());
-                            str3[q2.size()]=0;
-					        str1++;
-					        str1[strlen(str1)-1]=0;
-                            q2+=str1;
-                            str4=new char[q2.size()+1];
-                            strcpy(str4,q2.c_str());
-                            str4[q2.size()]=0;
-                            std::cout<<"path: "<<q2<<"\n";
-                            ag::list<CPRTokenInfo>* aTo=new ag::list<CPRTokenInfo>;
-                            ParseIt(aTo,GetFileText(str4));
-                            for(ag::list<CPRTokenInfo>::member p=aTo->head;p!=NULL;p=p->next)
-                                std::cout << p->data.sCurrText << ": " << p->data.petCurrType << "; ";
-                            std::cout<<"\n";
-                            BuildTree(workpath,aTo,GetFileText(str4),currparent);
-					    }else
-					    {
-					        std::cout<<"(ERROR) Erroneous include\n";
-					    }
-					}else
-					if (strcmp(p->data.sCurrText,"define")==0)
-					{
-					    CPRDefine cd;
-					    p=p->next;
-					    str1=ReadToEOLN(&p, sftext);
-					    CPRParser pp(str1);
-					    pp.SetReadSpaces(true);
-					    str1=pp.ReadIdent();
-					    if (pp.sCurrText[0]==' ')
-					    {
-					        //const
-					        cd.dt=cdtConst;
-					        str2=pp.ReadToEOLN();
-					        std::cout<<"(s0): define const: "<<str1<<" = "<<str2<<"\n";
-					    }
-					    sDefines.add_tail(cd);
-					}else
-					{
-                        str1=ReadToEOLN(&p, sftext);
-                        std::cout<<"(s0): directive: "<<str1<<"\n";
-                        tp=new ag::tree<CPRTreeNode*>(currparent,MakeCPRTreeNode(tntDirective,str1));
-					}
+                    str1=ReadToEOLN(&p, sftext);
+                    std::cout<<"(s0): directive: "<<str1<<"\n";
+                    tp=new ag::tree<CPRTreeNode*>(currparent,MakeCPRTreeNode(tntDirective,str1));
                 }else
 				/*if (p->data.sCurrText[0]=='@')
 				{

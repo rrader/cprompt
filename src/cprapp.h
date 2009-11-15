@@ -54,15 +54,17 @@ public:
 
     char* GetWorkDir()
     {
-        char* k=new char[strlen(sWorkDir)];
+        char* k=new char[strlen(sWorkDir)+1];
         strcpy(k,sWorkDir);
+        k[strlen(sWorkDir)]=0;
         return k;
     };
 
     char* GetCurrentFileText()
     {
-        char* k=new char[strlen(sPText)];
+        char* k=new char[strlen(sPText)+1];
         strcpy(k,sPText);
+        k[strlen(sPText)]=0;
         return k;
     };
 
