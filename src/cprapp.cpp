@@ -188,8 +188,8 @@ char* CPRApplication::ReadToEOLN(ag::list<CPRTokenInfo>::member* p, char* FText)
 
 void CPRApplication::Preprocessing(char** saveto,ag::list<CPRTokenInfo>* pTok,char* sText, char* workdir)
 {
-    //работает через ж
-    // Внимание!!! Очень важно передавать список токенов pTok, распарсеных с флагами ReadEOLN и ReadSpaces в true
+    // надо оптимизировать сильно!
+    // передавать pTok, распарсеных с флагами ReadEOLN и ReadSpaces в true
     std::cout<<"CPRApplication::BuildTree()\n";
     ag::list<CPRTokenInfo>* pTokens=(pTok!=NULL)?pTok:&aTokens;
     char* fText=(sText!=NULL)?sText:GetCurrentFileText();
@@ -401,7 +401,7 @@ void CPRApplication::Preprocessing(char** saveto,ag::list<CPRTokenInfo>* pTok,ch
                 p=tm;
                 iPos=p->data.iStartPos;
                 do p=p->next; while (p->data.sCurrText[0]==' ');
-                if (strcmp(p->data.sCurrText,"TEST")==0)
+                if (strcmp(p->data.sCurrText,"TESTTEMPDIRECTIVEQQWWEE")==0)
                 {
                     bSomeActions=true;
                     str2=new char[strlen(fText)];
@@ -427,6 +427,7 @@ void CPRApplication::Preprocessing(char** saveto,ag::list<CPRTokenInfo>* pTok,ch
             if (p->data.sCurrText[0]=='#')
             {
                 dirstart=p->data.iStartPos;
+                dirend=p->data.iFinishPos;
                 ag::list<CPRTokenInfo>::member tm=p;
                 bool isdirective=true;
                 p=p->prev;
@@ -445,18 +446,23 @@ void CPRApplication::Preprocessing(char** saveto,ag::list<CPRTokenInfo>* pTok,ch
                     do p=p->next; while (p->data.sCurrText[0]==' ');
                     str1=ReadToEOLN(&p, fText);
                     p=p->next;
-                    dirend=p->data.iStartPos;
-                    str2=new char[dirstart+(strlen(fText)-dirend)+1];
+                    //dirend=p->data.iStartPos;
+                    std::cout<<fText;
+                    str2=new char[dirstart+(strlen(fText)-dirend)+strlen("ITISDEFINEDIRECTIVE")];
                     strncpy(str2,fText,dirstart);
-                    strcpy(str2+dirstart,fText+dirend);
-                    str2[dirstart+(strlen(fText)-dirend)]=0;
-
+                    char* nn=new char[strlen("ITISDEFINEDIRECTIVE")+1];
+                    strcpy(nn,"ITISDEFINEDIRECTIVE");
+                    nn[strlen(nn)]=0;
+                    strcpy(str2+dirstart,nn);
+                    strcpy(str2+dirstart+strlen("ITISDEFINEDIRECTIVE"),fText+dirend);
+                    str2[strlen(str2)]=0;
                     fText=str2;
+                    std::cout<<fText;
                     pTokens->delall();
                     ParseIt(pTokens,fText,true,true); //можно сильно оптимизировать - ненадо каждый раз парсить заново
                     break;
                 }else
-                if (strcmp(p->data.sCurrText,"TEST")==0)
+                if (strcmp(p->data.sCurrText,"TESTTEMPDIRECTIVEQQWWEE")==0)
                 {
                     do p=p->next; while (p->data.sCurrText[0]==' ');
                     str1=ReadToEOLN(&p, fText);
@@ -680,7 +686,15 @@ void CPRApplication::BuildTree(char* workpath, ag::list<CPRTokenInfo>* pTok,char
                         p=p->prev;
                     }
                 }else
-                if (strcmp(p->data.sCurrText,"TEST")==0)
+                if (strcmp(p->data.sCurrText,"ITISDEFINEDIRECTIVEdefine")==0)
+                {
+                    str1=ReadIdent(&p, sftext);
+                    p=p->next;
+                    str2=ReadToEOLN(&p, sftext);
+                    std::cout<<"(s0): directive: "<<str1<<"\n";
+                    tp=new ag::tree<CPRTreeNode*>(currparent,MakeCPRTreeNode(tntDefine,str1,str2));
+                }else
+                if (strcmp(p->data.sCurrText,"TESTTEMPDIRECTIVEQQWWEE")==0)
                 {
                     str1=ReadToEOLN(&p, sftext);
                     std::cout<<"(s0): directive: "<<str1<<"\n";
@@ -1063,7 +1077,7 @@ void CPRApplication::ExecTree(ag::tree<CPRTreeNode*>* T,ag::list<DTVar*>* Extern
                         std::cout<<"#"<<p->data->data->text<<"\n";
                         CPRParser* pd=new CPRParser(p->data->data->text);
                         pd->Next();
-                        if (strcmp(pd->sCurrText,"TEST")==0)
+                        if (strcmp(pd->sCurrText,"TESTTEMPDIRECTIVEQQWWEE")==0)
                         {
                             pd->Next();
                             if (strcmp(pd->sCurrText,"out")==0)
