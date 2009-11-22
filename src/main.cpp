@@ -161,12 +161,12 @@ int main(int argc,char* argv[])
 
     App.SetFile(argv[1]);
 	std::cout<<"1. Pre-parsing\n";
-    App.ParseIt(&App.aTokens,App.GetCurrentFileText(),true,true);
-    for(ag::list<CPRTokenInfo>::member p=App.aTokens.head;p!=NULL;p=p->next)
-        std::cout << p->data.sCurrText << ": " << p->data.petCurrType << "; ";
+//    App.ParseIt(&App.aTokens,App.GetCurrentFileText(),true,true);
+//    for(ag::list<CPRTokenInfo>::member p=App.aTokens.head;p!=NULL;p=p->next)
+//        std::cout << p->data.sCurrText << ": " << p->data.petCurrType << "; ";
 	std::cout<<"\n\n";
     std::cout<<"2. Preprocessing\n";
-    App.Preprocessing(NULL, &App.aTokens, App.GetCurrentFileText(),App.GetWorkDir());
+    App.Preprocessing(NULL, App.GetCurrentFileText(),App.GetWorkDir());
     std::cout<<App.GetCurrentFileText()<<"\n";
 
     std::cout<<"3. Post-parsing\n";

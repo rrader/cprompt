@@ -901,6 +901,10 @@ DTVar* ParseDataTypeString(char* sDT,char* sName, rpnlist* data, ag::list<DTVar*
     {
         std::cout<<"(ERROR) "<<o<<"\n";
     }
+    catch(const char* k)
+    {
+        std::cout<<"(Error): "<<k<<"\n";
+    }
     catch(...)
     {
         std::cout<<"(UERROR)\n";

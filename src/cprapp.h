@@ -15,6 +15,18 @@ enum CPRDefineType
         cdtMacro=2
     };
 
+struct DefStackElement
+{
+    int iPos;
+    bool Processing;
+};
+
+struct StartEndStruct
+{
+    int start,end;
+    void* data;
+};
+
 struct CPRDefine
 {
     CPRDefineType dt;
@@ -39,10 +51,10 @@ public:
 
     void ParseIt(ag::list<CPRTokenInfo>* pTok=NULL,char* sText=NULL, bool bReadEoln=false, bool bReadSpaces=false);
     void PreParseIt(ag::list<CPRTokenInfo>* pTok=NULL,char* sText=NULL);
-    void Preprocessing(char**saveto=NULL, ag::list<CPRTokenInfo>* pTok=NULL,char* sText=NULL, char* workdir=NULL);
+    void Preprocessing(char**saveto=NULL,char* sText=NULL, char* workdir=NULL);
     void BuildTree(char* workpath, ag::list<CPRTokenInfo>* pTok,char* sftext,ag::tree<CPRTreeNode*>*parent);
     void ExecMainTree(ag::tree<CPRTreeNode*>* T);
-    void ExecTree(ag::tree<CPRTreeNode*>* T,ag::list<DTVar*>* ExternalVars=NULL);
+    void ExecTree(ag::tree<CPRTreeNode*>* T,ag::list<DTVar*>* ExternalVars=NULL, char* retname=NULL);
 
     char* ReadTypename(ag::list<CPRTokenInfo>::member& p);
     bool  IsTypename(ag::list<CPRTokenInfo>::member p);
@@ -71,9 +83,9 @@ public:
     ag::list<CPRTokenInfo> aTokens;
     ag::list<DTVar*> aVars;
     ag::stringlist* aTypenames;
-    ag::list<CPRDefine> sDefines;
     ag::tree<CPRTreeNode*>* aTree;
     ag::stack<DTVar*> aStack;
+    ag::list<CPRDefine> sDefines;
 protected:
 
 private:
@@ -81,6 +93,10 @@ private:
     int   iSize;
     char* sFilePath;
     char* sWorkDir;
+
+    void PreprocessIfDefs       (char**saveto=NULL, char* sText=NULL, char* workdir=NULL);
+    void PreprocessDefineConsts (char**saveto=NULL, char* fText=NULL, char* workdir=NULL);
+    void PreprocessIncludes     (char**saveto=NULL, char* sText=NULL, char* workdir=NULL);
 };
 
 ag::tree<CPRTreeNode*>* FindText1InTree(ag::tree<CPRTreeNode*>* T,char* sText);

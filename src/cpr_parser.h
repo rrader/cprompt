@@ -3,6 +3,14 @@
 
 #include "sets.h"
 
+extern ag::set stTxtSymb;
+extern ag::set stNumSymb;
+extern ag::set stPassSymb;
+extern ag::set stBreakSymb;
+extern ag::set stEofSymb;
+extern ag::set stSpaceSymb;
+extern ag::set sIdentSymbs;
+
 enum CPRParserExpType {petNone=0,petString=1,petInt=2,petFloat=3,petOther=4,
                        petSpace=5,petEOLN=6,petEOF=7,petOper=8};
 

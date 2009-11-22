@@ -508,6 +508,10 @@ ag::stack<DTVar*>* CalculateRPN(rpnlist* rpn, ag::list<DTVar*>* local)
     {
         std::cout<<"(ERROR) "<<o<<"\n";
     }
+    catch(const char* k)
+    {
+        std::cout<<"(Error): "<<k<<"\n";
+    }
     catch(...)
     {
         std::cout<<"(UERROR)\n";

@@ -3,7 +3,6 @@
 #include <fstream>
 #include "cpr_parser.h"
 
-
 char sTxtSymb[]="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 //АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЫЪЭЮЯабвгдеёжзийклмнопрстуфхцчшщьыъэюя";
 char sNumSymb[]="0123456789.e";
@@ -20,7 +19,7 @@ ag::set stBreakSymb(sBreakSymb);
 ag::set stEofSymb(sEofSymb);
 ag::set stSpaceSymb(sSpaceSymb);
 ag::set sIdentSymbs(sTxtSymb);
-
+ag::set sIdentSymbs2(sTxtSymb);
 
 void CPRTokenInfo::operator=(CPRTokenInfo& _sec)
 {

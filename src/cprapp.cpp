@@ -1,11 +1,12 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include <new>
 
 #include "lists.h"
 #include "stringlist.h"
 #include "cprapp.h"
 #include "cprtypes.h"
+#include <stdlib.h>
+#include <sstream>
+
 
 extern int argc;
 extern char** argv;
@@ -75,11 +76,12 @@ void CPRApplication::ParseIt(ag::list<CPRTokenInfo>* pTok,char* sText,bool bRead
     else
         pTokens=&aTokens;
 
+    cParser.Next();
     while (cParser.NowType()!=petEOF)
     {
-        cParser.Next();
         i=*(cParser.GetInfo());
         pTokens->add_tail(i);
+        cParser.Next();
     }
 }
 
@@ -186,306 +188,463 @@ char* CPRApplication::ReadToEOLN(ag::list<CPRTokenInfo>::member* p, char* FText)
     return m;
 }
 
-void CPRApplication::Preprocessing(char** saveto,ag::list<CPRTokenInfo>* pTok,char* sText, char* workdir)
+void CPRApplication::PreprocessIfDefs(char** saveto, char* sText, char* workdir)
 {
-    // надо оптимизировать сильно!
-    // передавать pTok, распарсеных с флагами ReadEOLN и ReadSpaces в true
-    std::cout<<"CPRApplication::BuildTree()\n";
-    ag::list<CPRTokenInfo>* pTokens=(pTok!=NULL)?pTok:&aTokens;
-    char* fText=(sText!=NULL)?sText:GetCurrentFileText();
-    char* str1, *str2, *str3, *str4;
-    std::string q2;
-    int IncludeType=0;
-    int iPos;
-    bool bSomeActions;
-    //  includes
-    do
+    // обработка: define, ifdef, ifndef, endif, elif
+    //ag::tree<> pPpcsTree;
+    ag::list<CPRTokenInfo>* pTok=new ag::list<CPRTokenInfo>;
+    ag::list<StartEndStruct> StartEndList;
+    CPRDefine dfn;
+    ag::stack<DefStackElement> DefStack;
+    ParseIt(pTok,sText,true,true);
+    DefStackElement dse;
+    dse.iPos=0;
+    dse.Processing=true;
+    DefStack.add_tail(dse);
+
+    for(ag::list<CPRTokenInfo>::member p=pTok->head;(p!=NULL)&&(p->data.petCurrType!=petEOF);p=p->next)
     {
-        bSomeActions=false;
-        for(ag::list<CPRTokenInfo>::member p=pTokens->head;(p!=NULL)&&(p->data.petCurrType!=petEOF);p=p->next)
+        if (p->data.sCurrText[0]=='#')
         {
-            if (p->data.sCurrText[0]=='#')
+            do p=p->next; while (p->data.sCurrText[0]==' ');
+            if (DefStack.empty()||(DefStack.tail->data.Processing))
             {
-                ag::list<CPRTokenInfo>::member tm=p;
-                bool isdirective=true;
-                p=p->prev;
-                while((p!=NULL)&&(p->data.petCurrType!=petEOLN)&&(p!=pTokens->head))
-                {
-                    if (p->data.petCurrType!=petSpace) {isdirective=false; break;}
-                    p=p->prev;
-                }
-                if (!isdirective) continue;
-                p=tm;
-                iPos=p->data.iStartPos;
-                do p=p->next; while (p->data.sCurrText[0]==' ');
-                if (strcmp(p->data.sCurrText,"include")==0)
-                {
-                    do p=p->next; while (p->data.sCurrText[0]==' ');
-
-                    IncludeType = (p->data.sCurrText[0]=='"')?1:( (p->data.sCurrText[0]=='<')?2:-1 );
-                    if (IncludeType==-1) throw "Invalid include directive";
-
-                    bSomeActions=true;
-
-                    if (IncludeType==1)
-                        {
-                            do p=p->next; while (p->data.sCurrText[0]==' ');
-                            q2=workdir;
-                            if (workdir[strlen(workdir)-1]!='/')
-                                q2+='/';
-                            str1=ReadToEOLN(&p, fText);
-                            do p=p->next; while (p->data.sCurrText[0]==' ');
-                            while((str1[strlen(str1)-1]!='"')&&(strlen(str1)>0)) str1[strlen(str1)-1]=0;
-                            str1[strlen(str1)-1]=0;
-                            while(!isprint(str1[strlen(str1)-1])) str1[strlen(str1)-1]=0;
-                            q2+=str1;
-                            str1=new char[q2.size()];
-                            strcpy(str1,q2.c_str());
-                            str1[strlen(str1)]=0;
-                            std::cout<<"workdir : "<<workdir<<"\n";
-                            std::cout<<"filepath: "<<str1<<"\n";
-
-                            ag::list<CPRTokenInfo>* aTo=new ag::list<CPRTokenInfo>;
-
-                            str1=GetFileText(str1);
-                            str2=new char[ strlen(fText) + strlen(str1) ];
-                            strncpy(str2,fText,iPos);
-                            strcpy(str2+iPos,str1);
-                            strncpy(str2+iPos+strlen(str1),fText+p->data.iStartPos,strlen(fText)-p->data.iStartPos);
-                            fText=str2;
-                            pTokens->delall();
-                            ParseIt(pTokens,fText,true,true); //можно сильно оптимизировать - ненадо каждый раз парсить заново
-                            break;
-                        }else
-                        if (IncludeType==2)
-                        {
-                            char* incpath=getenv("CPROMPTINCLUDES");
-                            if(incpath==NULL)
-                            {
-                                throw "(FATAL ERROR) Enviromnent variable CPROMPTINCLUDES is not initialized\n";
-                            }
-                            q2=incpath;
-                            if (incpath[strlen(incpath)-1]!='/')
-                                q2+='/';
-
-                            do p=p->next; while (p->data.sCurrText[0]==' ');
-                            str1=ReadToEOLN(&p, fText);
-                            do p=p->next; while (p->data.sCurrText[0]==' ');
-                            while((str1[strlen(str1)-1]!='>')&&(strlen(str1)>0)) str1[strlen(str1)-1]=0;
-                            str1[strlen(str1)-1]=0;
-                            while(!isprint(str1[strlen(str1)-1])) str1[strlen(str1)-1]=0;
-
-                            q2+=str1;
-                            str1=new char[q2.size()];
-                            strcpy(str1,q2.c_str());
-                            str1[strlen(str1)]=0;
-
-                            std::cout<<"workdir : "<<workdir<<"\n";
-                            std::cout<<"filepath: "<<str1<<"\n";
-
-                            str1=GetFileText(str1);
-                            str2=new char[ strlen(fText) + strlen(str1) ];
-                            strncpy(str2,fText,iPos);
-                            strcpy(str2+iPos,str1);
-                            strncpy(str2+iPos+strlen(str1),fText+p->data.iStartPos,strlen(fText)-p->data.iStartPos);
-                            fText=str2;
-                            pTokens->delall();
-                            ParseIt(pTokens,fText,true,true); //можно сильно оптимизировать - ненадо каждый раз парсить заново
-                            break;
-                        }else
-                        {
-                            std::cout<<"(ERROR) Erroneous include\n";
-                        }
-                };
-            }
-        };
-    }while(bSomeActions);
-
-
-    bSomeActions=false;
-    int dirstart,dirend;
-    do
-    {
-        bSomeActions=false;
-        for(ag::list<CPRTokenInfo>::member p=pTokens->head;(p!=NULL)&&(p->data.petCurrType!=petEOF);p=p->next)
-        {
-            if (p->data.sCurrText[0]=='#')
-            {
-                dirstart=p->data.iStartPos;
-                ag::list<CPRTokenInfo>::member tm=p;
-                bool isdirective=true;
-                p=p->prev;
-                while((p!=NULL)&&(p->data.petCurrType!=petEOLN)&&(p!=pTokens->head))
-                {
-                    if (p->data.petCurrType!=petSpace) {isdirective=false; break;}
-                    p=p->prev;
-                }
-                if (!isdirective) continue;
-                p=tm;
-                iPos=p->data.iStartPos;
-                do p=p->next; while (p->data.sCurrText[0]==' ');
                 if (strcmp(p->data.sCurrText,"define")==0)
                 {
                     do p=p->next; while (p->data.sCurrText[0]==' ');
-                    str1=ReadToEOLN(&p, fText);
-                    p=p->next;
-                    dirend=p->data.iStartPos;
-                    ag::list<CPRTokenInfo>* to=new ag::list<CPRTokenInfo>;
-                    ParseIt(to,str1,true,true);
-                    ag::stringlist deflist;
-
-                    ag::list<CPRTokenInfo>::member p0,p2;
-                    p0=to->head;
-                    while(p0->data.sCurrText[0]!=' ')
+                    char* ident;
+                    ident=ReadIdent(&p,sText);
+                    if (p->data.sCurrText[0]=='(') dfn.dt=cdtMacro; else dfn.dt=cdtConst;
+                    if (dfn.dt==cdtConst)
                     {
-                        //проверить на литералы
-                        deflist.add_tail(p0->data.sCurrText);
-                        str1+=p0->data.iCurrLength;
-                        p0=p0->next;
-                    }
-                    str1+=p0->data.iCurrLength;
-                    //неподеццки оптимизировать!!!
-                    ag::stringlist::member p3;
-
-                    for(ag::list<CPRTokenInfo>::member p1=p;(p1!=NULL)&&(p1->data.petCurrType!=petEOF);p1=p1->next)
-                    {
-                        // ААААААААААААААА! а вдруг оно в строке?!?!?!
-                        p2=p1;
-                        p3=deflist.head;
-                        while(strcmp(p1->data.sCurrText,p3->data)==0)  // проверить на литерал
+                        dfn.params=NULL;
+                        dfn.name=ident;
+                        if (p->data.sCurrText[0]==' ')
                         {
-                            p3=p3->next;
-                            p1=p1->next;
-                            if (p3==NULL)
-                            {
-                                bSomeActions=true;
-                                //НАШЛИ!!!
-                                str2=new char[p2->data.iStartPos+strlen(str1)+(strlen(fText)-p1->data.iStartPos)+1];
-                                strncpy(str2,fText,p2->data.iStartPos);
-                                strcpy(str2+p2->data.iStartPos,str1);
-                                strcpy(str2+p2->data.iStartPos+strlen(str1),fText+p1->data.iStartPos);
-                                str2[strlen(str2)]=0;
-                                fText=str2;
-                                pTokens->delall();
-                                ParseIt(pTokens,fText,true,true); //можно сильно оптимизировать - ненадо каждый раз парсить заново
-                                break;
-                            }
-                        }
-                        if (bSomeActions)
-                            break;
+                            do p=p->next; while (p->data.sCurrText[0]==' ');
+                            dfn.expr=ReadToEOLN(&p,sText);
+                        }else
+                            dfn.expr=NULL;
                     }
-                    if (bSomeActions)
+                    if (dfn.dt==cdtMacro)
+                    {
+                        //
+                    }
+                    bool replace=false;
+                    for(ag::list<CPRDefine>::member m=sDefines.head;m!=NULL;m=m->next)
+                    {
+                        if(strcmp(m->data.name,ident)==0)
+                        {
+                            m->data.dt=dfn.dt;
+                            m->data.params=dfn.params;
+                            m->data.expr=dfn.expr;
+                            replace=true;
+                            break;
+                        }
+                    }
+                    if (!replace)
+                        sDefines.add_tail(dfn);
+                }
+                if (strcmp(p->data.sCurrText,"undef")==0)
+                {
+                    do p=p->next; while (p->data.sCurrText[0]==' ');
+                    std::string ident;
+                    while(sIdentSymbs%p->data.sCurrText[0])
+                    {
+                        ident+=p->data.sCurrText;
+                        p=p->next;
+                    }
+                    for(ag::list<CPRDefine>::member m=sDefines.head;m!=NULL;m=m->next)
+                    {
+                        if(strcmp(m->data.name,ident.c_str())==0)
+                        {
+                            sDefines.del(m);
+                            break;
+                        }
+                    }
+                }
+                if ((strcmp(p->data.sCurrText,"ifdef")==0)||(strcmp(p->data.sCurrText,"ifndef")==0))
+                {
+                    //if (StartEndList.count()==1) {StartEndList.tail->data.end=p->data.iStartPos;};
+                    StartEndStruct ses;
+                    ses.start=DefStack.tail->data.iPos;
+                    ses.end=p->prev->data.iStartPos;
+                    StartEndList.add_tail(ses);
+                    do p=p->next; while (p->data.sCurrText[0]==' ');
+                    char* ident;
+                    ident=ReadIdent(&p,sText);
+                    bool def=false;
+                    for(ag::list<CPRDefine>::member m=sDefines.head;m!=NULL;m=m->next)
+                    {
+                        if(strcmp(m->data.name,ident)==0)
+                        {
+                            def=true;
+                            break;
+                        }
+                    }
+                    DefStackElement dse;
+                    dse.iPos = p->data.iStartPos;
+                    if (strcmp(p->data.sCurrText,"ifdef")==0)
+                        dse.Processing=def;
+                    else
+                        dse.Processing=!def;
+                    DefStack.push(dse);
+                }
+            }
+            if (strcmp(p->data.sCurrText,"else")==0)
+            {
+                DefStack.tail->data.Processing=!DefStack.tail->data.Processing;
+                if (DefStack.tail->data.Processing)
+                {
+                    DefStack.tail->data.iPos=p->data.iFinishPos;
+                    StartEndStruct ses;
+                }else
+                {
+                    StartEndStruct ses;
+                    ses.start=DefStack.tail->data.iPos;
+                    ses.end=p->prev->data.iStartPos;
+                    StartEndList.add_tail(ses);
+                }
+                do p=p->next; while (p->data.sCurrText[0]==' ');
+            }
+            if (strcmp(p->data.sCurrText,"endif")==0)
+            {
+                if (DefStack.tail->data.Processing)
+                {
+                    StartEndStruct ses;
+                    ses.start=DefStack.tail->data.iPos;
+                    ses.end=p->prev->data.iStartPos;
+                    StartEndList.add_tail(ses);
+                }
+                do p=p->next; while (p->data.sCurrText[0]==' ');
+                DefStack.pop();
+                DefStack.tail->data.iPos=p->prev->data.iFinishPos;
+            }
+        }
+    }
+    StartEndStruct ses;
+    ses.start=DefStack.tail->data.iPos;
+    ses.end=strlen(sText)-1;
+    StartEndList.add_tail(ses);
+    DefStack.pop();
+    if (!DefStack.empty()) throw "The count of #ifdef's and #endif's is not equall";
+
+    std::string res;
+    char* k;
+    res="";
+    for(ag::list<StartEndStruct>::member p=StartEndList.head;(p!=NULL);p=p->next)
+    {
+        k=new char[p->data.end-p->data.start+1];
+        strncpy(k,sText+p->data.start,p->data.end-p->data.start);
+        k[p->data.end-p->data.start]=0;
+        res+=k;
+        delete[] k;
+    }
+    k=new char[res.size()+1];
+    strcpy(k,res.c_str());
+    k[res.size()]=0;
+    ((saveto!=NULL)?*saveto:sPText) = k;
+}
+
+void CPRApplication::PreprocessIncludes(char** saveto, char* sText, char* workdir)
+{
+    // обработка инклудов
+    ag::list<CPRTokenInfo>* pTok=new ag::list<CPRTokenInfo>;
+    ParseIt(pTok,sText,true,true);
+    ag::list<StartEndStruct> StartEndList;
+    StartEndStruct ses;
+
+    for(ag::list<CPRTokenInfo>::member p=pTok->head;(p!=NULL)&&(p->data.petCurrType!=petEOF);p=p->next)
+    {
+        if (p->data.sCurrText[0]=='#')
+        {
+            ses.start=p->data.iStartPos;
+            do p=p->next; while (p->data.sCurrText[0]==' ');
+            if (strcmp(p->data.sCurrText,"include")==0)
+            {
+                do p=p->next; while (p->data.sCurrText[0]==' ');
+                int IncludeType = (p->data.sCurrText[0]=='"')?1:( (p->data.sCurrText[0]=='<')?2:-1 );
+                if (IncludeType==-1) throw "Invalid include directive";
+
+                if (IncludeType==1)
+                {
+                    do p=p->next; while (p->data.sCurrText[0]==' ');
+                    std::string wd=workdir;
+                    if (workdir[strlen(workdir)-1]!='/')
+                        wd+='/';
+                    std::string sPath;
+                    do{ sPath+=p->data.sCurrText; p=p->next;}while ((p->data.sCurrText[0]!='"')&&(p!=NULL));
+                    do p=p->next; while (p->data.sCurrText[0]==' ');
+                    if (p==NULL) throw "Second brace is not found";
+                    sPath=wd+sPath;
+                    std::cout<<"Path: "<<sPath<<"\n";
+                    std::cout<<"Work: "<<wd   <<"\n";
+                    char** inc=new char*;
+                    ses.end=p->data.iStartPos;
+                    Preprocessing(inc,GetFileText((char*)sPath.c_str()),(char*)wd.c_str());
+                    ses.data=inc;
+                    StartEndList.add_tail(ses);
+                }
+                if (IncludeType==2)
+                {
+                    do p=p->next; while (p->data.sCurrText[0]==' ');
+                    char* incpath=getenv("CPROMPTINCLUDES");
+                    if(incpath==NULL)
+                    {
+                        throw "(FATAL ERROR) Enviromnent variable CPROMPTINCLUDES is not initialized\n";
+                    }
+                    std::string wd=incpath;
+                    if (incpath[strlen(incpath)-1]!='/')
+                        wd+='/';
+                    std::string sPath;
+                    do{ sPath+=p->data.sCurrText; p=p->next;}while ((p->data.sCurrText[0]!='>')&&(p!=NULL));
+                    do p=p->next; while (p->data.sCurrText[0]==' ');
+                    if (p==NULL) throw "Second brace is not found";
+                    sPath=wd+sPath;
+                    std::cout<<"Path: "<<sPath<<"\n";
+                    std::cout<<"Work: "<<wd   <<"\n";
+                    char** inc=new char*;
+                    ses.end=p->data.iStartPos;
+                    Preprocessing(inc,GetFileText((char*)sPath.c_str()),(char*)wd.c_str());
+                    ses.data=inc;
+                    StartEndList.add_tail(ses);
+                }
+            }
+        }
+    }
+    char* k;
+    std::string res="";
+    int last=0;
+    for(ag::list<StartEndStruct>::member p=StartEndList.head;(p!=NULL);p=p->next)
+    {
+        k=new char[p->data.start+1];
+        strncpy(k,sText+last,p->data.start-last);
+//        std::cout<<": "<<k<<"\n";
+        k[(p->data.start)-last]=0;
+        res+=k;
+        delete[] k;
+        res+=*(char**)(p->data.data);
+        last=p->data.end;
+    }
+    k=new char[strlen(sText)-last];
+    strncpy(k,sText+last,strlen(sText)-last);
+//    std::cout<<p->data.start<<' '<<p->data.end<<": "<<k;
+    k[strlen(sText)-last]=0;
+    res+=k;
+    delete[] k;
+
+    k=new char[res.size()+1];
+    strcpy(k,res.c_str());
+    k[res.size()]=0;
+    ((saveto!=NULL)?*saveto:sPText) = k;
+}
+
+void CPRApplication::PreprocessDefineConsts(char** saveto, char* fText, char* workdir)
+{
+    // обработка дефайн-констант
+    char* sText=new char[strlen(fText)+1];
+    strcpy(sText,fText);
+    sText[strlen(fText)]=0;
+    ag::list<CPRTokenInfo>* pTok=new ag::list<CPRTokenInfo>;
+    ParseIt(pTok,sText,true,true);
+    ag::list<StartEndStruct> StartEndList;
+    ag::list<StartEndStruct> ToErase;
+    StartEndStruct ses;
+    CPRDefine dfn;
+    ag::list<CPRTokenInfo>* Tk=new ag::list<CPRTokenInfo>;
+
+    ag::list<CPRDefine> sDefinesL;
+    int iSt;
+
+    for(ag::list<CPRTokenInfo>::member p=pTok->head;(p!=NULL)&&(p->data.petCurrType!=petEOF);p=p->next)
+    {
+        if (p->data.sCurrText[0]=='#')
+        {
+            iSt=p->data.iStartPos;
+            do p=p->next; while (p->data.sCurrText[0]==' ');
+            if (strcmp(p->data.sCurrText,"pragma")==0)
+            {
+                sText[iSt]=' ';
+                ReadToEOLN(&p,sText);
+            }
+            if (strcmp(p->data.sCurrText,"define")==0)
+            {
+                do p=p->next; while (p->data.sCurrText[0]==' ');
+                char* ident;
+                ident=ReadIdent(&p,sText);
+                if (p->data.sCurrText[0]=='(') dfn.dt=cdtMacro; else dfn.dt=cdtConst;
+                if (dfn.dt==cdtConst)
+                {
+                    dfn.params=NULL;
+                    dfn.name=ident;
+                    if (p->data.sCurrText[0]==' ')
+                    {
+                        do p=p->next; while (p->data.sCurrText[0]==' ');
+                        dfn.expr=ReadToEOLN(&p,sText);
+                    }else
+                        dfn.expr=NULL;
+                }
+                if (dfn.dt==cdtMacro)
+                {
+                    //
+                }
+                bool replace=false;
+                for(ag::list<CPRDefine>::member m=sDefinesL.head;m!=NULL;m=m->next)
+                {
+                    if(strcmp(m->data.name,ident)==0)
+                    {
+                        m->data.dt=dfn.dt;
+                        m->data.params=dfn.params;
+                        m->data.expr=dfn.expr;
+                        replace=true;
                         break;
+                    }
+                }
+                if (!replace)
+                    sDefinesL.add_tail(dfn);
+            }
+            if (strcmp(p->data.sCurrText,"undef")==0)
+            {
+                do p=p->next; while (p->data.sCurrText[0]==' ');
+                std::string ident;
+                while(sIdentSymbs%p->data.sCurrText[0])
+                {
+                    ident+=p->data.sCurrText;
+                    p=p->next;
+                }
+                for(ag::list<CPRDefine>::member m=sDefinesL.head;m!=NULL;m=m->next)
+                {
+                    if(strcmp(m->data.name,ident.c_str())==0)
+                    {
+                        sDefinesL.del(m);
+                        break;
+                    }
                 }
             }
         }
-    }while(bSomeActions);
-
-
-    do
-    {
-        bSomeActions=false;
-        for(ag::list<CPRTokenInfo>::member p=pTokens->head;(p!=NULL)&&(p->data.petCurrType!=petEOF);p=p->next)
+        ag::list<CPRTokenInfo>::member Tkm;
+        ag::list<CPRDefine>::member b;
+        for(ag::list<CPRDefine>::member m=sDefinesL.head;m!=NULL;m=m->next)
         {
-            if (p->data.sCurrText[0]=='#')
+            Tk->delall();
+            ParseIt(Tk,m->data.name,true,true);
+            Tkm=Tk->head;
+            ses.start=p->data.iStartPos;
+            while(strcmp(Tkm->data.sCurrText,p->data.sCurrText)==0)
             {
-                ag::list<CPRTokenInfo>::member tm=p;
-                bool isdirective=true;
-                p=p->prev;
-                while((p!=NULL)&&(p->data.petCurrType!=petEOLN)&&(p!=pTokens->head))
+                Tkm=Tkm->next;
+                p=p->next;
+                if (Tkm==NULL)
                 {
-                    if (p->data.petCurrType!=petSpace) {isdirective=false; break;}
-                    p=p->prev;
-                }
-                if (!isdirective) continue;
-                p=tm;
-                iPos=p->data.iStartPos;
-                do p=p->next; while (p->data.sCurrText[0]==' ');
-                if (strcmp(p->data.sCurrText,"TESTTEMPDIRECTIVEQQWWEE")==0)
-                {
-                    bSomeActions=true;
-                    str2=new char[strlen(fText)];
-                    strncpy(str2,fText,iPos);
-                    strcpy(str2+iPos,fText+p->data.iStartPos);
-
-                    fText=str2;
-                    pTokens->delall();
-                    ParseIt(pTokens,fText,true,true); //можно сильно оптимизировать - ненадо каждый раз парсить заново
+                    //Нашли!
+                    ses.end=p->prev->data.iFinishPos;
+                    char* j=new char[strlen(m->data.expr)+1];
+                    strcpy(j,m->data.expr);
+                    j[strlen(m->data.expr)]=0;
+                    ses.data=j;
+                    if (ses.data!=NULL)
+                        StartEndList.add_tail(ses);
                     break;
-                };
-            }
-        };
-    }while(bSomeActions);
-
-    bSomeActions=false;
-
-    do
-    {
-        bSomeActions=false;
-        for(ag::list<CPRTokenInfo>::member p=pTokens->head;(p!=NULL)&&(p->data.petCurrType!=petEOF);p=p->next)
-        {
-            if (p->data.sCurrText[0]=='#')
-            {
-                dirstart=p->data.iStartPos;
-                dirend=p->data.iFinishPos;
-                ag::list<CPRTokenInfo>::member tm=p;
-                bool isdirective=true;
-                p=p->prev;
-                while((p!=NULL)&&(p->data.petCurrType!=petEOLN)&&(p!=pTokens->head))
-                {
-                    if (p->data.petCurrType!=petSpace) {isdirective=false; break;}
-                    p=p->prev;
-                }
-                if (!isdirective) continue;
-                p=tm;
-                iPos=p->data.iStartPos;
-                bSomeActions=true;
-                do p=p->next; while (p->data.sCurrText[0]==' ');
-                if (strcmp(p->data.sCurrText,"define")==0)
-                {
-                    do p=p->next; while (p->data.sCurrText[0]==' ');
-                    str1=ReadToEOLN(&p, fText);
-                    p=p->next;
-                    //dirend=p->data.iStartPos;
-                    std::cout<<fText;
-                    str2=new char[dirstart+(strlen(fText)-dirend)+strlen("ITISDEFINEDIRECTIVE")];
-                    strncpy(str2,fText,dirstart);
-                    char* nn=new char[strlen("ITISDEFINEDIRECTIVE")+1];
-                    strcpy(nn,"ITISDEFINEDIRECTIVE");
-                    nn[strlen(nn)]=0;
-                    strcpy(str2+dirstart,nn);
-                    strcpy(str2+dirstart+strlen("ITISDEFINEDIRECTIVE"),fText+dirend);
-                    str2[strlen(str2)]=0;
-                    fText=str2;
-                    std::cout<<fText;
-                    pTokens->delall();
-                    ParseIt(pTokens,fText,true,true); //можно сильно оптимизировать - ненадо каждый раз парсить заново
-                    break;
-                }else
-                if (strcmp(p->data.sCurrText,"TESTTEMPDIRECTIVEQQWWEE")==0)
-                {
-                    do p=p->next; while (p->data.sCurrText[0]==' ');
-                    str1=ReadToEOLN(&p, fText);
-                    p=p->next;
-                    dirend=p->data.iStartPos;
-                    int* U=new int;
-                    str2=new char[dirstart+(strlen(fText)-dirend)];
-                    strncpy(str2,fText,dirstart);
-                    strcpy(str2+dirstart,fText+dirend);
-                    fText=str2;
-                    pTokens->delall();
-                    ParseIt(pTokens,fText,true,true); //можно сильно оптимизировать - ненадо каждый раз парсить заново
-                    break;
-                }else
-                {
-                    bSomeActions=false;
-                    throw "Unknown directive";
                 }
             }
         }
-    }while(bSomeActions);
+    }
 
-    (saveto!=NULL)?*saveto:sPText = fText;
+    char* k;
+    std::string res="";
+    int last=0;
+    for(ag::list<StartEndStruct>::member p=StartEndList.head;(p!=NULL);p=p->next)
+    {
+        k=new char[p->data.start+1];
+        strncpy(k,sText+last,p->data.start-last);
+//        std::cout<<": "<<k<<"\n";
+        k[(p->data.start)-last]=0;
+        res+=k;
+        delete[] k;
+        if (p->data.data!=NULL)
+            res+=(char*)(p->data.data);
+        last=p->data.end;
+    }
+    k=new char[strlen(sText)-last];
+    strncpy(k,sText+last,strlen(sText)-last);
+//    std::cout<<p->data.start<<' '<<p->data.end<<": "<<k;
+    k[strlen(sText)-last]=0;
+    res+=k;
+    delete[] k;
+    k=new char[res.size()+1];
+    strcpy(k,res.c_str());
+    k[res.size()]=0;
+
+
+    pTok->delall();
+    ToErase.delall();
+    ParseIt(pTok,k,true,true);
+    for(ag::list<CPRTokenInfo>::member p=pTok->head;(p!=NULL)&&(p->data.petCurrType!=petEOF);p=p->next)
+    {
+        if (p->data.sCurrText[0]=='#')
+        {
+            iSt=p->data.iStartPos;
+            do p=p->next; while (p->data.sCurrText[0]==' ');
+            if (strcmp(p->data.sCurrText,"define")==0)
+            {
+                ReadToEOLN(&p,k);
+                ses.start=iSt;
+                ses.end=p->data.iFinishPos;
+                ses.data=NULL;
+                ToErase.add_tail(ses);
+            }
+            if (strcmp(p->data.sCurrText,"undef")==0)
+            {
+                ReadToEOLN(&p,k);
+                ses.start=iSt;
+                ses.end=p->data.iFinishPos;
+                ses.data=NULL;
+                ToErase.add_tail(ses);
+            }
+        }
+    }
+
+    res="";
+    char* y;
+    last=0;
+    for(ag::list<StartEndStruct>::member p=ToErase.head;(p!=NULL);p=p->next)
+    {
+        y=new char[p->data.start+1];
+        strncpy(y,k+last,p->data.start-last);
+//        std::cout<<": "<<k<<"\n";
+        y[(p->data.start)-last]=0;
+        res+=y;
+        delete[] y;
+        if (p->data.data!=NULL)
+            res+=(char*)(p->data.data);
+        last=p->data.end;
+    }
+    y=new char[strlen(k)-last+1];
+    strncpy(y,k+last,strlen(k)-last);
+//    std::cout<<p->data.start<<' '<<p->data.end<<": "<<k;
+    y[strlen(k)-last]=0;
+    res+=y;
+    delete[] y;
+    //std::cout<<res;
+    y=new char[res.size()+1];
+    strcpy(y,res.c_str());
+    y[res.size()]=0;
+
+
+    ((saveto!=NULL)?*saveto:sPText) = y;
+}
+
+void CPRApplication::Preprocessing(char** saveto, char* sText, char* workdir)
+{
+    // 1) обработка инклудов
+    PreprocessIncludes     (saveto,sText,workdir);
+    // 2) обработка: define, ifdef, ifndef, endif, elif
+    PreprocessIfDefs       (saveto,((saveto!=NULL)?*saveto:sPText),workdir);
+    PreprocessDefineConsts (saveto,((saveto!=NULL)?*saveto:sPText),workdir);
+    // 3) обработка pragma
+    ;
+    // 4) обработка комментариев
+    ;
 }
 
 void CPRApplication::BuildTree(char* workpath, ag::list<CPRTokenInfo>* pTok,char* sftext,ag::tree<CPRTreeNode*>*parent)
@@ -686,15 +845,7 @@ void CPRApplication::BuildTree(char* workpath, ag::list<CPRTokenInfo>* pTok,char
                         p=p->prev;
                     }
                 }else
-                if (strcmp(p->data.sCurrText,"ITISDEFINEDIRECTIVEdefine")==0)
-                {
-                    str1=ReadIdent(&p, sftext);
-                    p=p->next;
-                    str2=ReadToEOLN(&p, sftext);
-                    std::cout<<"(s0): directive: "<<str1<<"\n";
-                    tp=new ag::tree<CPRTreeNode*>(currparent,MakeCPRTreeNode(tntDefine,str1,str2));
-                }else
-                if (strcmp(p->data.sCurrText,"TESTTEMPDIRECTIVEQQWWEE")==0)
+                if (strcmp(p->data.sCurrText,"pragma")==0)
                 {
                     str1=ReadToEOLN(&p, sftext);
                     std::cout<<"(s0): directive: "<<str1<<"\n";
@@ -881,7 +1032,7 @@ ag::tree<CPRTreeNode*>* FindText1InTree(ag::tree<CPRTreeNode*>* T,char* sText)
 	return NULL;
 }
 
-void CPRApplication::ExecTree(ag::tree<CPRTreeNode*>* T,ag::list<DTVar*>* ExternalVars)
+void CPRApplication::ExecTree(ag::tree<CPRTreeNode*>* T,ag::list<DTVar*>* ExternalVars, char* retname)
 {
     try
     {
@@ -916,12 +1067,18 @@ void CPRApplication::ExecTree(ag::tree<CPRTreeNode*>* T,ag::list<DTVar*>* Extern
                 pm=pm->next;
             }
             std::string sq=T->data->text2;
-            sq+="_result";
+            sq+="_result_";
+//            std::ostringstream si;
+//            si << rand();
+//            sq+=si.str();
             sq_s=new char[sq.size()+1];
             strcpy(sq_s,sq.c_str());
             sq_s[sq.size()]=0;
             DTVar* r=ParseDataTypeString(T->data->text,sq_s,NULL,&Local);
             Local.add_tail(r);
+        }else
+        {
+            sq_s=retname;
         }
 
         ag::listmember< ag::tree<CPRTreeNode*>* >* p=(*T).childs.head;
@@ -950,6 +1107,10 @@ void CPRApplication::ExecTree(ag::tree<CPRTreeNode*>* T,ag::list<DTVar*>* Extern
                             std::cout<<"variable was added to Local\n";
                             std::cout<<((DTMain*)(dtv->T))->DTFullName()<<"\n";
                         }catch(char* k)
+                        {
+                            std::cout<<"(Error): "<<k<<"\n";
+                        }
+                        catch(const char* k)
                         {
                             std::cout<<"(Error): "<<k<<"\n";
                         };
@@ -991,7 +1152,7 @@ void CPRApplication::ExecTree(ag::tree<CPRTreeNode*>* T,ag::list<DTVar*>* Extern
                                 break;
                             }
                         }
-                        ExecTree(call,&Local);
+                        ExecTree(call,&Local,sq_s);
                         break;
                     }
                 case tntWhileLoop:
@@ -1011,7 +1172,7 @@ void CPRApplication::ExecTree(ag::tree<CPRTreeNode*>* T,ag::list<DTVar*>* Extern
                             }
                             bOk=(((DTIntegerTypes*)(if_ex))->toint());
                             if (bOk)
-                                ExecTree(p->data,&Local);
+                                ExecTree(p->data,&Local,sq_s);
                         }while (bOk);
                         break;
                     }
@@ -1020,7 +1181,7 @@ void CPRApplication::ExecTree(ag::tree<CPRTreeNode*>* T,ag::list<DTVar*>* Extern
                         bool bOk;
                         do
                         {
-                            ExecTree(p->data,&Local);
+                            ExecTree(p->data,&Local,sq_s);
                             ag::stack<DTVar*>* g= CalculateRPN((rpnlist*)p->data->data->r1, &Local);
                             DTMain* if_ex=((DTMain*)(g->pop()->T));
                             if (if_ex->typeoftype()!=1)
@@ -1052,7 +1213,7 @@ void CPRApplication::ExecTree(ag::tree<CPRTreeNode*>* T,ag::list<DTVar*>* Extern
                             }
                             bOk=(((DTIntegerTypes*)(if_ex))->toint());
                             if (bOk)
-                                ExecTree(p->data,&Local);
+                                ExecTree(p->data,&Local,sq_s);
                         }while (bOk);
                         break;
                     }
@@ -1063,9 +1224,12 @@ void CPRApplication::ExecTree(ag::tree<CPRTreeNode*>* T,ag::list<DTVar*>* Extern
                     }
                 case tntReturn:
                     {
+                        if (sq_s==NULL) throw "return is not allowed in this context";
                         ag::stack<DTVar*>* g= CalculateRPN((rpnlist*)p->data->data->r1, &Local);
                         DTVar* ret_var=FindVariable(sq_s,&Local);
-                        CalculateAssignation((DTMain*)(ret_var->T),(DTMain*)(g->pop()->T),&Local);
+                        DTMain* qw=(DTMain*)(g->pop()->T);
+                        DTMain* er=(DTMain*)(ret_var->T);
+                        CalculateAssignation(er,qw,&Local);
                         aStack.push(ret_var);
                         //if ((DTMain*)(ret_var->T)->typeoftype()==)
                         return;
@@ -1077,7 +1241,7 @@ void CPRApplication::ExecTree(ag::tree<CPRTreeNode*>* T,ag::list<DTVar*>* Extern
                         std::cout<<"#"<<p->data->data->text<<"\n";
                         CPRParser* pd=new CPRParser(p->data->data->text);
                         pd->Next();
-                        if (strcmp(pd->sCurrText,"TESTTEMPDIRECTIVEQQWWEE")==0)
+                        if (strcmp(pd->sCurrText,"pragma")==0)
                         {
                             pd->Next();
                             if (strcmp(pd->sCurrText,"out")==0)
@@ -1113,6 +1277,10 @@ void CPRApplication::ExecTree(ag::tree<CPRTreeNode*>* T,ag::list<DTVar*>* Extern
         if (T->data->tntType==tntFunction)
             aStack.push(FindVariable(sq_s,&Local));
     }catch(char* k)
+    {
+        std::cout<<"(Error): "<<k<<"\n";
+    }
+    catch(const char* k)
     {
         std::cout<<"(Error): "<<k<<"\n";
     };
