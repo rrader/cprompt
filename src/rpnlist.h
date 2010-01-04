@@ -15,7 +15,8 @@ struct DTVar;
 enum RPNStackElementType {
             rsetNum=0,
             rsetStr=1,
-            rsetAct=2
+            rsetAct=2,
+            rsetString=3
             };
 
 struct RPNStackElement

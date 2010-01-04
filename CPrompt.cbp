@@ -15,6 +15,9 @@
 				<Compiler>
 					<Add option="-g" />
 				</Compiler>
+				<Linker>
+					<Add option="-ldl" />
+				</Linker>
 			</Target>
 			<Target title="Release">
 				<Option output="bin/Release/CPrompt" prefix_auto="1" extension_auto="1" />
@@ -37,6 +40,10 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
+		<Unit filename="src/OutsideCall.s">
+			<Option target="Debug" />
+			<Option target="Release" />
+		</Unit>
 		<Unit filename="src/cpr_parser.cpp">
 			<Option target="Debug" />
 			<Option target="Release" />
@@ -113,6 +120,7 @@
 		<Extensions>
 			<code_completion />
 			<debugger />
+			<envvars />
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

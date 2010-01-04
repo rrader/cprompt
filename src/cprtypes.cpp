@@ -428,9 +428,20 @@ void DTPtr::dtmemfree()
 char* DTPtr::DTName()
 {
     std::cout<<"DTPtr::DTName()\n";
-	char* rs=new char[strlen("void*")+1];
-	strcpy(rs,"void*");
-	rs[strlen("void*")]=0;
+    char* rs;
+    if (_tp==NULL)
+    {
+        rs=new char[strlen("void*")+1];
+        strcpy(rs,"void*");
+        rs[strlen("void*")]=0;
+    }else
+    {
+        std::string rss=_tp;
+        rss+='*';
+        rs=new char[rss.size()+1];
+        strcpy(rs,rss.c_str());
+        rs[rss.size()]=0;
+    }
 	return rs;
 }
 
@@ -438,17 +449,24 @@ char* DTPtr::tostring()
 {
     std::cout<<"DTPtr::tostring()\n";
     char* rs;
-    if (strcmp(_tp,"char")==0)
+    if ((strcmp(_tp,"char")==0)||(strcmp(_tp,"const char")==0))
     {
-        rs=new char[strlen((char*)pData)];
-        strcpy(rs,(char*)pData);
+        rs=new char[strlen((char*)(*(void**)pData))];
+        strcpy(rs,(char*)(*(void**)pData));
     } else
     {
-        char* tmp=new char[100];
-        sprintf(tmp,"%d",*(int*)pData);
-        rs=new char[strlen(tmp)];
-        strcpy(rs,tmp);
-        delete[] tmp;
+        if (pData==NULL)
+        {
+            rs=new char[5];
+            rs="NULL";
+        }else
+        {
+            char* tmp=new char[100];
+            sprintf(tmp,"%d",*(int*)pData);
+            rs=new char[strlen(tmp)];
+            strcpy(rs,tmp);
+            delete[] tmp;
+        }
     }
 	return rs;
 }
@@ -459,6 +477,22 @@ DTArray::DTArray(char* name,int sz,int c,char* tp) //with memalloc
 {
 	std::cout<<"DTArray("<<((name!=NULL)?name:"NULL")<<", "<<sz<<", "<<c<<", "<<((tp!=NULL)?tp:"NULL")<<")\n";
 	pData=new char[size*c];
+	size=size*c;
+    size_one=sz;
+    count=c;
+    type_one=new char[strlen(tp)];
+    strcpy(type_one,tp);
+    if (name!=NULL)
+	{
+        sIdent=new char[strlen(name)];
+        strcpy(sIdent,name);
+	}
+}
+
+DTArray::DTArray(char* name,int sz,int c,char* tp,void* init) //with memalloc
+{
+	std::cout<<"DTArray("<<((name!=NULL)?name:"NULL")<<", "<<sz<<", "<<c<<", "<<((tp!=NULL)?tp:"NULL")<<") with init\n";
+	pData=init;
 	size=size*c;
     size_one=sz;
     count=c;
@@ -506,8 +540,8 @@ bool DTArray::FillElement(int n,void* buf)
 void* DTArray::GetElement(int n)
 {
     std::cout<<"DTArray::GetElement("<<n<<")\n";
-    void* p=(char*)pData+(n*size_one);
-    return *(void**)(p);
+    //void* p=*(void**)pData;//(char*)pData+(n*size_one);
+    return (char*)pData+(n*size_one);//*(void**)(p);
 }
 
 char* DTArray::tostring()
@@ -600,20 +634,30 @@ DTVar* CalculateAct1op(DTMain* a,char c1,char c2)
 
 DTVar* CalculateAssignation(DTMain* a,DTMain* b, ag::list<DTVar*>* local)
 {
-     if (((a->typeoftype()==b->typeoftype()))||
+    if (((a->typeoftype()==b->typeoftype()))&&(a->typeoftype()==3))
+    {
+        a->dtmemfree();
+        a->pData=b->pData;
+    }else if ((a->typeoftype()==3)&&(b->typeoftype()==4))
+    {
+        a->dtmemfree();
+        a->pData=new char[((DTArray*)b)->sizeoftype()];
+        memcpy(a->pData,*(void**)(((DTArray*)b)->pData),((DTArray*)b)->sizeoftype());
+    }
+    else if (((a->typeoftype()==b->typeoftype()))||
          ((a->typeoftype()==2)&&(b->typeoftype()==1)))
-     {
-         a->dtmemfree();
-         rpnlist* rl=new rpnlist;
-         RPNStackElement* rse=new RPNStackElement;
-         rse->tp=rsetNum;
-         rse->d=b;
-         rl->add_tail(rse);
-         DTVar* dv=ParseDataTypeString(a->DTName(),a->sIdent,rl,local);
-         a->assign((DTMain*)(dv->T));
-         std::cout<<"CalculateAssignation(): a="<<a->tostring()<<"\n";
-     }else
-     {
+    {
+        a->dtmemfree();
+        rpnlist* rl=new rpnlist;
+        RPNStackElement* rse=new RPNStackElement;
+        rse->tp=rsetNum;
+        rse->d=b;
+        rl->add_tail(rse);
+        DTVar* dv=ParseDataTypeString(a->DTName(),a->sIdent,rl,local);
+        a->assign((DTMain*)(dv->T));
+        std::cout<<"CalculateAssignation(): a="<<a->tostring()<<"\n";
+    }else
+    {
         std::string ret="Uncompatible types in assignation: <";
         ret+=a->DTName();
         ret+="> and <";
@@ -623,8 +667,8 @@ DTVar* CalculateAssignation(DTMain* a,DTMain* b, ag::list<DTVar*>* local)
         strcpy(ret_s,ret.c_str());
         ret_s[ret.size()]=0;
         throw ret_s;
-     }
-     return DTVar::CreateNativeDTVarFromDTMain(a);
+    }
+    return DTVar::CreateNativeDTVarFromDTMain(a);
 }
 
 DTVar* CalculateSum2op(DTMain* a,DTMain* b)

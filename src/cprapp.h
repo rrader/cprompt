@@ -55,6 +55,7 @@ public:
     void BuildTree(char* workpath, ag::list<CPRTokenInfo>* pTok,char* sftext,ag::tree<CPRTreeNode*>*parent);
     void ExecMainTree(ag::tree<CPRTreeNode*>* T);
     void ExecTree(ag::tree<CPRTreeNode*>* T,ag::list<DTVar*>* ExternalVars=NULL, char* retname=NULL);
+    void ExecOutside(ag::tree<CPRTreeNode*>* T);
 
     char* ReadTypename(ag::list<CPRTokenInfo>::member& p);
     bool  IsTypename(ag::list<CPRTokenInfo>::member p);
@@ -97,9 +98,11 @@ private:
     void PreprocessIfDefs       (char**saveto=NULL, char* sText=NULL, char* workdir=NULL);
     void PreprocessDefineConsts (char**saveto=NULL, char* fText=NULL, char* workdir=NULL);
     void PreprocessIncludes     (char**saveto=NULL, char* sText=NULL, char* workdir=NULL);
+    void* CreateBufferFromStackStdCall(ag::list<CPRTextDataType>* params,int& WordCount);
 };
 
-ag::tree<CPRTreeNode*>* FindText1InTree(ag::tree<CPRTreeNode*>* T,char* sText);
-ag::tree<CPRTreeNode*>* FindText2InTree(ag::tree<CPRTreeNode*>* T,char* sText);
+ag::tree<CPRTreeNode*>* FindText1InTree(ag::tree<CPRTreeNode*>* T,char* sText,CPRTreeNodeType tnt=tntNone);
+ag::tree<CPRTreeNode*>* FindText2InTree(ag::tree<CPRTreeNode*>* T,char* sText,CPRTreeNodeType tnt=tntNone);
+ag::tree<CPRTreeNode*>* FindFunctionInTree(ag::tree<CPRTreeNode*>* T,char* sText);
 
 #endif // CPRAPP_INCLUDED

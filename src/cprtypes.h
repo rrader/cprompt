@@ -170,6 +170,7 @@ class DTPtr : public DTMain
 class DTArray : public DTMain
 {
     public:
+        DTArray(char* name,int sz,int c,char* tp,void* init);
         DTArray(char* name,int sz,int c,char* tp);
 
         void dtmemalloc();

@@ -22,6 +22,7 @@ enum CPRTreeNodeType
         tntForLoop=11,
         tntDoWhileLoop=12,
         tntDefine=13,
+        tntOutside=14,
         tntDirective=98,
         tntVarOutput=99
     };
