@@ -159,12 +159,11 @@ rpnlist* MakePostfixFromInfix(char* infix)
 
             se=new RPNStackElement;
             se->tp=rsetString;
-            s_ptr=new void*;
-            *s_ptr=s;
-            se->d=new DTArray(NULL,1,strlen(s)+1,"char",s_ptr);
+            se->d=new DTArray(NULL,1,strlen(s)+1,"char",s);
 
 //            res->add_tail(se);
             std::cout<<se->tp<<": "<<s<<"\n";
+            std::cout<<": "<< ((DTArray*)(se->d))->tostring() <<"\n";
             _res->add_tail(se);
             s=new char[256];
         }
@@ -514,7 +513,7 @@ ag::stack<DTVar*>* CalculateRPN(rpnlist* rpn, ag::list<DTVar*>* local)
                     if (j!=NULL)
                     {
                         st->push(j);
-                        std::cout<<"    "<<((*((DTMain*)j->T)).tostring())<<"\n";
+                        std::cout<<"    "<<((*((DTMain*)j->T)).DTFullName())<<" = "<<((*((DTMain*)j->T)).tostring())<<"\n";
                     }else
                     {
                         char* s;

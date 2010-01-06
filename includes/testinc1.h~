@@ -1,0 +1,6 @@
+signed int test(signed int k1,double k2)
+{
+    #TEST out k1
+    signed int y=k1-k2;
+    return y;
+}

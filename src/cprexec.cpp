@@ -17,6 +17,8 @@ CallCDeclFloatFunc CallCDecl_Float = (CallCDeclFloatFunc) CallCDecl;
 CallCDeclDoubleFunc CallCDecl_Double = (CallCDeclDoubleFunc) CallCDecl;
 CallCDeclPointerFunc CallCDecl_Pointer = (CallCDeclPointerFunc) CallCDecl;
 
+
+// REVERSE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 void* CPRApplication::CreateBufferFromStackStdCall(ag::list<CPRTextDataType>* params,int& WordCount)
 {
     int count=params->count();
@@ -51,19 +53,28 @@ void* CPRApplication::CreateBufferFromStackStdCall(ag::list<CPRTextDataType>* pa
     {
         v=aStack.pop();
         dv=ParseDataTypeString(pm->data.str1,pm->data.str2,NULL,NULL);
-        switch(((DTMain*)(v->T))->typeoftype())
+        switch(((DTMain*)(dv->T))->typeoftype())
         {
-            case 3: { //pointer, 4 bytes
+            /*case 4: {
+                CalculateAssignation((DTMain*)(dv->T),(DTMain*)(v->T),NULL);
                 if (((DTMain*)(dv->T))->typeoftype()!=3)
                     throw "Uncompatible types!";
-                memcpy(buf+offset,((DTMain*)(v->T))->pData,sizeof(void*));
+                memcpy(buf+offset,((DTMain*)(dv->T))->pData,sizeof(void*));
+                break;
+            }*/
+            case 3: { //pointer, 4 bytes
+                if ((((DTMain*)(dv->T))->typeoftype()!=3)&&(((DTMain*)(dv->T))->typeoftype()!=4))
+                    throw "Uncompatible types!";
+                CalculateAssignation((DTMain*)(dv->T),(DTMain*)(v->T),NULL);
+                //memcpy(buf+offset,,sizeof(void*));
+                *(void**)(buf+offset)=((DTMain*)(dv->T))->pData;
                 break;
             }
             case 1: { //Integer types
                     CalculateAssignation((DTMain*)(dv->T),(DTMain*)(v->T),NULL);
                     if ((strcmp(((DTMain*)(dv->T))->DTName(),"signed int")==0)||(strcmp(((DTMain*)(dv->T))->DTName(),"unsigned int")==0))
                     {
-                        *(int*)(buf+offset)=*((int*)(((DTMain*)(v->T))->pData));
+                        *(int*)(buf+offset)=*((int*)(((DTMain*)(dv->T))->pData));
                     }
                     break;
                 }
@@ -71,13 +82,13 @@ void* CPRApplication::CreateBufferFromStackStdCall(ag::list<CPRTextDataType>* pa
                     CalculateAssignation((DTMain*)(dv->T),(DTMain*)(v->T),NULL);
                     if (strcmp(((DTMain*)(dv->T))->DTName(),"double")==0)
                     {
-                        double x=*((double*)(((DTMain*)(v->T))->pData));
+                        double x=*((double*)(((DTMain*)(dv->T))->pData));
                         memcpy(buf+offset+4,&x,4);
                         memcpy(buf+offset,(char*)&x+4,4);
                     }
                     if (strcmp(((DTMain*)(dv->T))->DTName(),"float")==0)
                     {
-                        float x=*((float*)(((DTMain*)(v->T))->pData));
+                        float x=*((float*)(((DTMain*)(dv->T))->pData));
                         memcpy(buf+offset,&x,sizeof(float));
                     }
                     break;
@@ -102,10 +113,10 @@ DTVar* CallOutsideCDecl(void* Addr, int WordCount, void* VarBuffer, char* rettyp
             }
         case 1: {//integer
                 int k=CallCDecl_Int(Addr,WordCount,VarBuffer);
-                if (strcmp(rettype,"signed int")==0)
-                    b=new DTInt(NULL,k);
-                else
+                if (strcmp(rettype,"unsigned int")==0)
                     b=new DTUInt(NULL,k);
+                else
+                    b=new DTInt(NULL,k);
                 break;
             }
         case 2: {//double

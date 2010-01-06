@@ -1,0 +1,8 @@
+#include <cstdlib>
+
+int pow(int base,int k) {
+    if (k>0)
+        return base*pow(base,k-1);
+    else
+        return 1;
+}

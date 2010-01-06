@@ -178,7 +178,7 @@ class DTArray : public DTMain
         char* DTName();
 
         bool FillElement(int n,void* buf);
-        void* GetElement(int n);
+        DTVar* GetElement(int n);
 
         int count;
         int size_one;

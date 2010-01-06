@@ -449,24 +449,23 @@ char* DTPtr::tostring()
 {
     std::cout<<"DTPtr::tostring()\n";
     char* rs;
+    if (pData==NULL)
+    {
+        rs=new char[5];
+        rs="NULL";
+        return rs;
+    }
     if ((strcmp(_tp,"char")==0)||(strcmp(_tp,"const char")==0))
     {
-        rs=new char[strlen((char*)(*(void**)pData))];
-        strcpy(rs,(char*)(*(void**)pData));
+        rs=new char[strlen((char*)pData)];
+        strcpy(rs,(char*)pData);
     } else
     {
-        if (pData==NULL)
-        {
-            rs=new char[5];
-            rs="NULL";
-        }else
-        {
-            char* tmp=new char[100];
-            sprintf(tmp,"%d",*(int*)pData);
-            rs=new char[strlen(tmp)];
-            strcpy(rs,tmp);
-            delete[] tmp;
-        }
+        char* tmp=new char[100];
+        sprintf(tmp,"%d",*(int*)pData);
+        rs=new char[strlen(tmp)];
+        strcpy(rs,tmp);
+        delete[] tmp;
     }
 	return rs;
 }
@@ -533,15 +532,42 @@ bool DTArray::FillElement(int n,void* buf)
     std::cout<<"DTArray::FillElement("<<n<<",buf)\n";
     if (n>=count) return false;
     void* p=(char*)pData+(n*size_one);
-    memcpy(p,buf,size_one);
+    //p=buf;
+
+    DTVar* o=ParseDataTypeString(type_one,NULL,NULL, NULL);
+    if (o->dtet==dtetNative)
+        memcpy(p,buf,size_one);
+    else
+        *(int*)p=(int)(buf);
+
+
+
+
+    //char* x=new char[100];
+    //memcpy(x,*(void**)p,size_one);
+    //std::cout<<*(char**)p<<"\n";
+    //std::cout<<*(char**)p<<"\n";
+    delete o;
     return true;
 }
 
-void* DTArray::GetElement(int n)
+DTVar* DTArray::GetElement(int n)
 {
     std::cout<<"DTArray::GetElement("<<n<<")\n";
     //void* p=*(void**)pData;//(char*)pData+(n*size_one);
-    return (char*)pData+(n*size_one);//*(void**)(p);
+    DTVar* o=ParseDataTypeString(type_one,NULL,NULL, NULL);
+    //(*(DTMain*)(o->T)).pData=*((void**)((char*)pData+(n*size_one)));//*(void**)(p);
+    //(*(DTMain*)(o->T)).pData
+    if (o->dtet==dtetNative)
+    {
+        (*(DTMain*)(o->T)).pData=new char[size_one];
+        memcpy((*(DTMain*)(o->T)).pData,((char*)pData+(n*size_one)),size_one);//*((void**)((char*)pData+(n*size_one)));//*(void**)(p);
+    } else
+    {
+        //(*(DTMain*)(o->T)).pData=new char[size_one];
+        (*(DTMain*)(o->T)).pData=*(void**)((((char*)pData+(n*size_one))));
+    }
+    return o;
 }
 
 char* DTArray::tostring()
@@ -551,8 +577,7 @@ char* DTArray::tostring()
     DTVar* o;
     for(int i=0;i<count;i++)
     {
-        o=ParseDataTypeString(type_one,NULL,NULL, NULL);
-        (*(DTMain*)(o->T)).pData=GetElement(i);
+        o=GetElement(i);
         st+=(*(DTMain*)(o->T)).tostring();
         if ((i+1)!=count)
             st+=' ';
@@ -642,10 +667,11 @@ DTVar* CalculateAssignation(DTMain* a,DTMain* b, ag::list<DTVar*>* local)
     {
         a->dtmemfree();
         a->pData=new char[((DTArray*)b)->sizeoftype()];
-        memcpy(a->pData,*(void**)(((DTArray*)b)->pData),((DTArray*)b)->sizeoftype());
+        memcpy(a->pData,((DTArray*)b)->pData,((DTArray*)b)->sizeoftype());
     }
     else if (((a->typeoftype()==b->typeoftype()))||
-         ((a->typeoftype()==2)&&(b->typeoftype()==1)))
+         ((a->typeoftype()==2)&&(b->typeoftype()==1))||
+         ((a->typeoftype()==1)&&(b->typeoftype()==2)))
     {
         a->dtmemfree();
         rpnlist* rl=new rpnlist;
@@ -906,6 +932,10 @@ DTVar* ParseDataTypeString(char* sDT,char* sName, rpnlist* data, ag::list<DTVar*
             char* ss=new char[strlen(sDT)];
             strcpy(ss,sDT);
             ss[strlen(ss)-1]=0;
+            //trim
+            while(ss[0]==' ')ss++;
+            while(ss[strlen(ss)-1]==' ')ss[strlen(ss)-1]=0;
+
             k->dtet=dtetPointer;
             //k->T=ParseDataTypeString(ss,sName,data);
             k->T=new DTPtr(sName,ss);

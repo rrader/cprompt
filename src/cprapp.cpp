@@ -123,6 +123,7 @@ char* CPRApplication::ReadTypename(ag::list<CPRTokenInfo>::member& p)
     while(sl_m!=NULL)
     {
         sl.addstr(p->data.sCurrText);
+        std::cout<<"part of type (): '"<<p->data.sCurrText<<"'\n";
         p=p->next;
         sl_m=aTypenames->findstr(p->data.sCurrText);
     };
@@ -170,6 +171,9 @@ char* CPRApplication::ReadIdent(ag::list<CPRTokenInfo>::member* p, char* FText)
     CPRParser prs(FText,(*p)->data.iStartPos);
     int* E=new int;
     char* m  = prs.ReadIdent();
+    //trim
+    while(m[0]==' ')m++;
+    while(m[strlen(m)-1]==' ')m[strlen(m)-1]=0;
 /*    char* m2 = ((strcmp(m,"*")==0)||(strcmp(m,"&")==0))?prs.ReadIdent():NULL;
     if (m2!=NULL) strcat(m,m2);*/
     while((*p)->data.iStartPos<prs.iPosition-1)(*p)=(*p)->next;
@@ -457,8 +461,9 @@ void CPRApplication::PreprocessDefineConsts(char** saveto, char* fText, char* wo
     //ag::list<CPRDefine> sDefinesL;
     int iSt;
 
-    for(ag::list<CPRTokenInfo>::member p=pTok->head;(p!=NULL)&&(p->data.petCurrType!=petEOF);p=p->next)
+    for(ag::list<CPRTokenInfo>::member p=pTok->head;(p!=NULL);p=p->next)
     {
+        if (p->data.petCurrType==petEOF) break;
         if (p->data.sCurrText[0]=='#')
         {
             iSt=p->data.iStartPos;
@@ -525,13 +530,6 @@ void CPRApplication::PreprocessDefineConsts(char** saveto, char* fText, char* wo
         }
         ag::list<CPRTokenInfo>::member Tkm;
         ag::list<CPRDefine>::member b;
-        if (strcmp(p->data.sCurrText,"pi")==0)
-        {
-            std::cout<<"pi\n"<<sDefines.count()<<"\n";
-
-            for(ag::list<CPRDefine>::member kms=sDefines.head;kms!=NULL;kms=kms->next)
-                std::cout<<kms->data.name<<"\n";
-        }
         std::cout<<">>";
         for(ag::list<CPRDefine>::member kms=sDefines.head;kms!=NULL;kms=kms->next)
                 std::cout<<kms->data.name<<"\n";
@@ -541,7 +539,7 @@ void CPRApplication::PreprocessDefineConsts(char** saveto, char* fText, char* wo
             ParseIt(Tk,m->data.name,true,true);
             Tkm=Tk->head;
             ses.start=p->data.iStartPos;
-            while(strcmp(Tkm->data.sCurrText,p->data.sCurrText)==0)
+            while((strcmp(Tkm->data.sCurrText,p->data.sCurrText)==0))
             {
                 Tkm=Tkm->next;
                 p=p->next;
@@ -576,7 +574,7 @@ void CPRApplication::PreprocessDefineConsts(char** saveto, char* fText, char* wo
             res+=(char*)(p->data.data);
         last=p->data.end;
     }
-    k=new char[strlen(sText)-last];
+    k=new char[strlen(sText)-last+1];
     strncpy(k,sText+last,strlen(sText)-last);
 //    std::cout<<p->data.start<<' '<<p->data.end<<": "<<k;
     k[strlen(sText)-last]=0;
@@ -1125,7 +1123,9 @@ void CPRApplication::ExecOutside(ag::tree<CPRTreeNode*>* T)
         int wc;
         void* buf=CreateBufferFromStackStdCall((ag::list<CPRTextDataType>*)(T->data->r1),wc);  //пихаем в буфер параметры
         void *addr = dlsym(NULL,T->data->text2);
+        std::cout<<"calling the "<<T->data->text2<<" ...\n";
         aStack.push(CallOutsideCDecl(addr,wc,buf,T->data->text));
+        std::cout<<"\ncall finished\n";
         //CallStdCall(addr,wc,buf,8); // скармливаем буфер функции
     }
 }
@@ -1399,17 +1399,18 @@ void CPRApplication::ExecMainTree(ag::tree<CPRTreeNode*>* T)
     aStack.push(m);
     aStack.push(DTVar::CreateNativeDTVarFromDTMain(L));
 
-    void** ss;
-    char* tmp;
+    char* ss;
+    void** tmp;
 	for(int i=1;i<argc;i++)
 	{
-	    ss=new void*;
-        *ss=new char[strlen(argv[i])];
-        strcpy((char*)*ss,argv[i]);
+	    //tmp=new void*;
+        ss=new char[strlen(argv[i])+1];
+        strcpy(ss,argv[i]);
+        ss[strlen(argv[i])]=0;
         cpargv->FillElement(i-1,ss);
 	}
 	for(int i=0;i<cpargv->count;i++)
-        std::cout<<"cpargv["<<i<<"]:: "<<(char*)(cpargv->GetElement(i))<<"\n";
+        std::cout<<"cpargv["<<i<<"]:: "<<((DTMain*)(((DTVar*)(cpargv->GetElement(i)))->T))->tostring()<<"\n";
     std::cout<<"DTArray.tostring(): \""<<cpargv->tostring()<<"\"\n";
 	//test
 /*	int k=*((unsigned int*)(((DTUInt*)(((DTVar*)(aStack.pop()))->T))->pData));
