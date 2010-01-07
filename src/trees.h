@@ -2,6 +2,9 @@
 #define TREES_H_INCLUDED
 
 #include <iostream>
+#include <fstream>
+extern bool debugmode;
+
 #include "lists.h"
 #include "main.h"
 
@@ -38,7 +41,7 @@ tree<T>::tree(T d)
 template<typename T>
 tree<T>::tree(tree* p,T d)
     {
-        std::cout<<"tree::tree()\n";
+        if (debugmode) std::cout<<"tree::tree()\n";
         p->addchild_ptr(this);
         parent=p;
         data=d;

@@ -2,6 +2,9 @@
 #include <string.h>
 #include <fstream>
 #include "cpr_parser.h"
+#include <fstream>
+extern bool debugmode;
+
 
 char sTxtSymb[]="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 //АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЫЪЭЮЯабвгдеёжзийклмнопрстуфхцчшщьыъэюя";
@@ -273,7 +276,7 @@ void CPRParser::PassSymbs()
 
 char* CPRParser::ReadIdent()
 {
-    std::cout<<"CPRParser::ReadIdent()\n";
+    if (debugmode) std::cout<<"CPRParser::ReadIdent()\n";
     int* J=new int; //не трогать!
     ag::set sAllowed;
     sAllowed=sIdentSymbs;

@@ -7,10 +7,14 @@ CPRApplication* AppV;
 #include <fstream>
 #include <string.h>
 #include <fstream>
+bool debugmode;
+int argnum;
+
 #include "stringlist.h"
 #include "main.h"
 #include "cprapp.h"
 #include "cprtypes.h"
+
 
 char* concat(char* s1,char* s2)
 {
@@ -34,15 +38,15 @@ CPRTreeNode::operator char*()
 
 CPRTreeNode* MakeCPRTreeNode(CPRTreeNodeType tp, char* text,char*text2,char*text3,char*text4,void* rx1,void* rx2,void* rx3)
 {
-    std::cout<<"MakeCPRTreeNode("<<tp<<", ";
-    std::cout<<((text==NULL)?"":text);
-    std::cout<<", ";
-    std::cout<<((text2==NULL)?"":text2);
-    std::cout<<", ";
-    std::cout<<((text3==NULL)?"":text3);
-    std::cout<<", ";
-    std::cout<<((text4==NULL)?"":text4);
-    std::cout<<")\n";
+    if (debugmode) std::cout<<"MakeCPRTreeNode("<<tp<<", ";
+    if (debugmode) std::cout<<((text==NULL)?"":text);
+    if (debugmode) std::cout<<", ";
+    if (debugmode) std::cout<<((text2==NULL)?"":text2);
+    if (debugmode) std::cout<<", ";
+    if (debugmode) std::cout<<((text3==NULL)?"":text3);
+    if (debugmode) std::cout<<", ";
+    if (debugmode) std::cout<<((text4==NULL)?"":text4);
+    if (debugmode) std::cout<<")\n";
 
     CPRTreeNode* k=new CPRTreeNode;
 
@@ -93,7 +97,7 @@ CPRTreeNode* MakeCPRTreeNode(CPRTreeNodeType tp, char* text,char*text2,char*text
     {
         s1=NULL;
     };
-    std::cout<<"Lendths: "<<i1<<", "<<i2<<", "<<i3<<", "<<i4<<"\n";
+    if (debugmode) std::cout<<"Lendths: "<<i1<<", "<<i2<<", "<<i3<<", "<<i4<<"\n";
     int* q=new int; //лучше не трогать
 
     if (i1!=0) strcpy(s1,text);
@@ -144,42 +148,56 @@ void FillCPRTreeNode(CPRTreeNode* k,CPRTreeNodeType tp, char* text,char*text2,ch
 //char** f_argv;
 int main(int argc,char* argv[])
 {
-    std::cout<<"\n";
-    std::cout<<"Sizeof DTVar: "<<sizeof(DTVar)<<"\n";
+//    if (debugmode) std::cout<<"Sizeof DTVar: "<<sizeof(DTVar)<<"\n";
+debugmode=false;
     ::argc=argc;
 	::argv=argv;
 	CPRApplication App;
 	::AppV=&App;
-    std::cout << "Hello at the CPrompt's interpreter p_argc=" << argc-1 << "\n";
-    std::cout << "Executing the c-script: " << argv[1] << "\n";
-
-	if (argc<=1)
+	argnum=1;
+	if (strcmp(argv[1],"--dbg")==0)
 	{
-		std::cout<<"Usage: cprompt \"/path/to/your/cprompt/script.cp\"\n";
-		return 0;
+	    debugmode=true;
+	    argnum++;
 	}
+    std::string qw=argv[argnum];
+    qw+=".log";
+    //if (debugmode) std::cout.open (qw.c_str(), std::ios::binary );
+//    if (debugmode) std::cout.open(&std::cout);
+    if (debugmode) std::cout<<"Start...\n";
 
-    App.SetFile(argv[1]);
-	std::cout<<"1. Pre-parsing\n";
-//    App.ParseIt(&App.aTokens,App.GetCurrentFileText(),true,true);
-//    for(ag::list<CPRTokenInfo>::member p=App.aTokens.head;p!=NULL;p=p->next)
-//        std::cout << p->data.sCurrText << ": " << p->data.petCurrType << "; ";
-	std::cout<<"\n\n";
-    std::cout<<"2. Preprocessing\n";
-    App.Preprocessing(NULL, App.GetCurrentFileText(),App.GetWorkDir());
-    std::cout<<App.GetCurrentFileText()<<"\n";
+    if (debugmode) std::cout << "Hello at the CPrompt's interpreter p_argc=" << argc-1 << "\n";
+    if (debugmode) std::cout << "Executing the c-script: " << argv[argnum] << "\n";
+    try
+    {
+        if (argc<=1)
+        {
+            if (debugmode) std::cout<<"Usage: cprompt \"/path/to/your/cprompt/script.cp\"\n";
+            return 0;
+        }
 
-    std::cout<<"3. Post-parsing\n";
-
-    App.aTokens.delall();
-    App.ParseIt(&App.aTokens,App.GetCurrentFileText(),false,false);
-
-	std::cout<<"4. Building the main tree\n";
-    App.BuildTree(App.GetWorkDir(), &App.aTokens, App.GetCurrentFileText(), NULL);
-	std::cout<<"Tree was built:\n";
-    App.aTree->drawtree_con(&std::cout);
-//3. Execute main()
-	std::cout<<"\n";
-	std::cout<<"5. Execute main() \n";
-	App.ExecMainTree(App.aTree);
+        App.SetFile(argv[argnum]);
+        if (debugmode) std::cout<<"1. Pre-parsing\n";
+    //    App.ParseIt(&App.aTokens,App.GetCurrentFileText(),true,true);
+    //    for(ag::list<CPRTokenInfo>::member p=App.aTokens.head;p!=NULL;p=p->next)
+    //        if (debugmode) std::cout << p->data.sCurrText << ": " << p->data.petCurrType << "; ";
+        if (debugmode) std::cout<<"\n\n";
+        if (debugmode) std::cout<<"2. Preprocessing\n";
+        App.Preprocessing(NULL, App.GetCurrentFileText(),App.GetWorkDir());
+        if (debugmode) std::cout<<App.GetCurrentFileText()<<"\n";
+        if (debugmode) std::cout<<"3. Post-parsing\n";
+        App.aTokens.delall();
+        App.ParseIt(&App.aTokens,App.GetCurrentFileText(),false,false);
+        if (debugmode) std::cout<<"4. Building the main tree\n";
+        App.BuildTree(App.GetWorkDir(), &App.aTokens, App.GetCurrentFileText(), NULL);
+        if (debugmode) std::cout<<"Tree was built:\n";
+        if (debugmode) App.aTree->drawtree_con(&std::cout);
+    //3. Execute main()
+        if (debugmode) std::cout<<"\n";
+        if (debugmode) std::cout<<"5. Execute main() \n";
+        App.ExecMainTree(App.aTree);
+    }catch(...)
+    {
+        std::cout.flush();
+    }
 }

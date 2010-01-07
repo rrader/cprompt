@@ -50,7 +50,7 @@ char isoperoneof(char o,char n,char* str)
 {
     char a,b;
     int i=0;
-    //std::cout<<"isoperleft("<<o<<", "<<n<<", \""<<str<<"\")\n";
+    //if (debugmode) std::cout<<"isoperleft("<<o<<", "<<n<<", \""<<str<<"\")\n";
     while (a=str[i++],b=str[i++],a)
     {
         if ((a==o)&&(b==n)) return 1;
@@ -102,7 +102,7 @@ char operprior(char o,char n)
 //        if (s_len!=0)
 //        {
 //            //NUMBER
-//            std::cout<<"   num: "<<s<<"\n";
+//            if (debugmode) std::cout<<"   num: "<<s<<"\n";
 //            se=new RPNStackElement;
 //            se->tp=rsetNum;
 //            if (isfloat)
@@ -162,8 +162,8 @@ rpnlist* MakePostfixFromInfix(char* infix)
             se->d=new DTArray(NULL,1,strlen(s)+1,"char",s);
 
 //            res->add_tail(se);
-            std::cout<<se->tp<<": "<<s<<"\n";
-            std::cout<<": "<< ((DTArray*)(se->d))->tostring() <<"\n";
+            if (debugmode) std::cout<<se->tp<<": "<<s<<"\n";
+            if (debugmode) std::cout<<": "<< ((DTArray*)(se->d))->tostring() <<"\n";
             _res->add_tail(se);
             s=new char[256];
         }
@@ -193,7 +193,7 @@ rpnlist* MakePostfixFromInfix(char* infix)
             se->d=new char[strlen(s)];
             strcpy((char*)se->d,s);
 //            res->add_tail(se);
-            std::cout<<se->tp<<": "<<s<<"\n";
+            if (debugmode) std::cout<<se->tp<<": "<<s<<"\n";
 
             //
             se=new RPNStackElement;
@@ -230,7 +230,7 @@ rpnlist* MakePostfixFromInfix(char* infix)
             ss[s_len]=':';
             ss[s_len+1]=0;
             se->d = ss;
-            std::cout<<"temp "<<ss<<"\n";
+            if (debugmode) std::cout<<"temp "<<ss<<"\n";
             stack.push(se);
             se=new RPNStackElement;
             se->tp=rsetAct;
@@ -252,7 +252,7 @@ rpnlist* MakePostfixFromInfix(char* infix)
             while(ss[j++]=s[j]);
             se->d = ss;
 //            res->add_tail(se);
-            std::cout<<se->tp<<": "<<s<<"\n";
+            if (debugmode) std::cout<<se->tp<<": "<<s<<"\n";
 
             //
             _res->add_tail(se);
@@ -271,7 +271,7 @@ rpnlist* MakePostfixFromInfix(char* infix)
                     break;
                 se=stack.pop();
 //                res->add_tail(se);
-                std::cout<<se->tp<<": "<<(char*)(se->d)<<"\n";
+                if (debugmode) std::cout<<se->tp<<": "<<(char*)(se->d)<<"\n";
                 if (se->tp==rsetNum)
                 {
                     switch (((char*)(se->d))[0])
@@ -291,7 +291,7 @@ rpnlist* MakePostfixFromInfix(char* infix)
                         break;
 //                    res->add_tail(se);
 
-                    std::cout<<se->tp<<": "<<(char*)(se->d)<<"\n";
+                    if (debugmode) std::cout<<se->tp<<": "<<(char*)(se->d)<<"\n";
                     //
                     if (se->tp==rsetNum)
                     {
@@ -311,7 +311,7 @@ rpnlist* MakePostfixFromInfix(char* infix)
                     {
                         se=stack.pop();
 //                        res->add_tail(se);
-                        std::cout<<se->tp<<": "<<(char*)(se->d)<<"\n";
+                        if (debugmode) std::cout<<se->tp<<": "<<(char*)(se->d)<<"\n";
 
                         //
                         if (se->tp==rsetNum)
@@ -362,7 +362,7 @@ rpnlist* MakePostfixFromInfix(char* infix)
                         if ((ss[0]=='(')&&(ss[1]==' ')) break;
                         se=stack.pop();
 //                        res->add_tail(se);
-                        std::cout<<se->tp<<": "<<(char*)(se->d)<<"\n";
+                        if (debugmode) std::cout<<se->tp<<": "<<(char*)(se->d)<<"\n";
 
                         //
                         if (se->tp==rsetNum)
@@ -387,7 +387,7 @@ rpnlist* MakePostfixFromInfix(char* infix)
                         if ((ss[0]=='(')&&(ss[1]==' ')) break;
                         se=stack.pop();
 //                        res->add_tail(se);
-                        std::cout<<se->tp<<": "<<(char*)(se->d)<<"\n";
+                        if (debugmode) std::cout<<se->tp<<": "<<(char*)(se->d)<<"\n";
                         //
                         if (se->tp==rsetNum)
                         {
@@ -421,7 +421,7 @@ rpnlist* MakePostfixFromInfix(char* infix)
     {
         se=stack.pop();
 //        res->add_tail(se);
-        std::cout<<se->tp<<": "<<(char*)(se->d)<<"\n";
+        if (debugmode) std::cout<<se->tp<<": "<<(char*)(se->d)<<"\n";
         //
         if (se->tp==rsetNum)
         {
@@ -434,14 +434,14 @@ rpnlist* MakePostfixFromInfix(char* infix)
         _res->add_tail(se);
         //
     }
-    std::cout<<"\n";
+    if (debugmode) std::cout<<"\n";
     return _res;
 }
 //6+*i
 ag::stack<DTVar*>* CalculateRPN(rpnlist* rpn, ag::list<DTVar*>* local)
 {
     try{
-        std::cout<<"CalculateRPN(\n";
+        if (debugmode) std::cout<<"CalculateRPN(\n";
         DTMain* v;
         DTVar* j;
         int i;
@@ -451,27 +451,27 @@ ag::stack<DTVar*>* CalculateRPN(rpnlist* rpn, ag::list<DTVar*>* local)
         {
             if(m->data->tp==rsetNum)
             {
-                std::cout<<"    "<<((*((DTMain*)m->data->d)).tostring())<<"\n";
+                if (debugmode) std::cout<<"    "<<((*((DTMain*)m->data->d)).tostring())<<"\n";
                 st->push(DTVar::CreateNativeDTVarFromDTMain((DTMain*)m->data->d));
             };
             if(m->data->tp==rsetString)
             {
-                std::cout<<"    "<<((*((DTMain*)m->data->d)).tostring())<<"\n";
+                if (debugmode) std::cout<<"    "<<((*((DTMain*)m->data->d)).tostring())<<"\n";
                 st->push(DTVar::CreateNativeDTVarFromDTMain((DTMain*)m->data->d));
             };
             if(m->data->tp==rsetAct)
             {
-                std::cout<<"    "<<((char*)m->data->d)[0]<<((char*)m->data->d)[1]<<"\n";
+                if (debugmode) std::cout<<"    "<<((char*)m->data->d)[0]<<((char*)m->data->d)[1]<<"\n";
                 DTVar* v;
                 int r=st->count();
-                std::cout<<r<<";\n";
+                if (debugmode) std::cout<<r<<";\n";
                 if (((char*)m->data->d)[1]!='u')
                   v=CalculateAct2op((DTMain*)(st->pop()->T),(DTMain*)(st->pop()->T),((char*)m->data->d)[0],((char*)m->data->d)[1],
                                         local);
                 else
                   v=CalculateAct1op((DTMain*)(st->pop()->T),((char*)m->data->d)[0],((char*)m->data->d)[1]);
                 st->push(v);
-                //std::cout<<"    "<<((*((DTMain*)j->T)).tostring())<<"\n";
+                //if (debugmode) std::cout<<"    "<<((*((DTMain*)j->T)).tostring())<<"\n";
             }
             if(m->data->tp==rsetStr)
             {
@@ -487,14 +487,14 @@ ag::stack<DTVar*>* CalculateRPN(rpnlist* rpn, ag::list<DTVar*>* local)
                     {
                         throw "(FATAL ERROR) Function not found. Terminated.";
                     }
-                    func_t->drawtree_con(&std::cout);
+                    if (debugmode) func_t->drawtree_con(&std::cout);
                     ag::list<CPRTextDataType>* prms=(ag::list<CPRTextDataType>*)(func_t->data->r1);
-                    std::cout<<"function "<<(char*)m->data->d<<" have "<<prms->count()<<" parametets:\n";
+                    if (debugmode) std::cout<<"function "<<(char*)m->data->d<<" have "<<prms->count()<<" parametets:\n";
                     for(ag::list<CPRTextDataType>::member m=prms->head;m!=NULL;m=m->next)
                     {
-                        std::cout<<((m->data.str1!=NULL)?m->data.str1:"")<<" ";
-                        std::cout<<((m->data.str2!=NULL)?m->data.str2:"")<<" ";
-                        std::cout<<((m->data.str3!=NULL)?m->data.str3:"")<<". \n";
+                        if (debugmode) std::cout<<((m->data.str1!=NULL)?m->data.str1:"")<<" ";
+                        if (debugmode) std::cout<<((m->data.str2!=NULL)?m->data.str2:"")<<" ";
+                        if (debugmode) std::cout<<((m->data.str3!=NULL)?m->data.str3:"")<<". \n";
                     };
                     DTVar* m;
                     for(int i=0;i<prms->count();i++)
@@ -513,7 +513,7 @@ ag::stack<DTVar*>* CalculateRPN(rpnlist* rpn, ag::list<DTVar*>* local)
                     if (j!=NULL)
                     {
                         st->push(j);
-                        std::cout<<"    "<<((*((DTMain*)j->T)).DTFullName())<<" = "<<((*((DTMain*)j->T)).tostring())<<"\n";
+                        if (debugmode) std::cout<<"    "<<((*((DTMain*)j->T)).DTFullName())<<" = "<<((*((DTMain*)j->T)).tostring())<<"\n";
                     }else
                     {
                         char* s;
@@ -530,24 +530,24 @@ ag::stack<DTVar*>* CalculateRPN(rpnlist* rpn, ag::list<DTVar*>* local)
                 case 'i':
                     {
                         char* k=(char*)(m->data->d)+1;
-                        std::cout<<"      int "<<atoi(k)<<"\n";
+                        if (debugmode) std::cout<<"      int "<<atoi(k)<<"\n";
                         v=new DTInt(NULL,atoi(k));
                         break;
                     }
             }*/
         };
-        std::cout<<"  );\n";
+        if (debugmode) std::cout<<"  );\n";
         return st;
     }catch(char* o)
     {
-        std::cout<<"(ERROR) "<<o<<"\n";
+        if (debugmode) std::cout<<"(ERROR) "<<o<<"\n";
     }
     catch(const char* k)
     {
-        std::cout<<"(Error): "<<k<<"\n";
+        if (debugmode) std::cout<<"(Error): "<<k<<"\n";
     }
     catch(...)
     {
-        std::cout<<"(UERROR)\n";
+        if (debugmode) std::cout<<"(UERROR)\n";
     }
 };

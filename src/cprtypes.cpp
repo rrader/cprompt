@@ -8,14 +8,14 @@
 
 DTMain::DTMain()
 {
-	std::cout<<"DTMain()\n";
+	if (debugmode) std::cout<<"DTMain()\n";
 	sIdent=NULL;
 	pData=NULL;
 }
 
 DTMain::DTMain(char* name)
 {
-	std::cout<<"DTMain("<<name<<")\n";
+	if (debugmode) std::cout<<"DTMain("<<name<<")\n";
 	sIdent=new char[strlen(name)];
 	strcpy(sIdent,name);
 	pData=NULL;
@@ -23,7 +23,7 @@ DTMain::DTMain(char* name)
 
 void DTMain::SetIdent(char* name)
 {
-    std::cout<<"DTMain: SetIdent\n";
+    if (debugmode) std::cout<<"DTMain: SetIdent\n";
 	if (sIdent!=NULL) delete[] sIdent;
 	sIdent=new char[strlen(name)];
 	strcpy(sIdent,name);
@@ -34,14 +34,14 @@ char* DTMain::DTFullName()
 	std::string a;
 	char* n=DTName();
 	a+=n;
-	std::cout<<"DTFullName():\n";
-	std::cout<<"DTName()="<<n<<"\n";
+	if (debugmode) std::cout<<"DTFullName():\n";
+	if (debugmode) std::cout<<"DTName()="<<n<<"\n";
 
 	if (sIdent==NULL)
-        std::cout<<"sIdent=NULL\n";
+        if (debugmode) std::cout<<"sIdent=NULL\n";
     else
 	{
-        std::cout<<"sIdent="<<sIdent<<"\n";
+        if (debugmode) std::cout<<"sIdent="<<sIdent<<"\n";
 	}
 	//char* a=new char[strlen(n)+1+sIdLen];
 	if (sIdent!=NULL)
@@ -68,7 +68,7 @@ void DTMain::assign(DTMain* u)
 
 DTInt::DTInt(char* name) //without memalloc!
 {
-	std::cout<<"DTInt("<<((name!=NULL)?name:"NULL")<<")\n";
+	if (debugmode) std::cout<<"DTInt("<<((name!=NULL)?name:"NULL")<<")\n";
 	pData=NULL;
 	if (name!=NULL)
 	{
@@ -80,7 +80,7 @@ DTInt::DTInt(char* name) //without memalloc!
 
 DTInt::DTInt(char*name,int d)
 {
-	std::cout<<"DTInt("<<((name!=NULL)?name:"NULL")<<", "<<d<<")\n";
+	if (debugmode) std::cout<<"DTInt("<<((name!=NULL)?name:"NULL")<<", "<<d<<")\n";
 	dtmemalloc();
 	*((int*)pData)=d;
 	if (name!=NULL)
@@ -92,14 +92,14 @@ DTInt::DTInt(char*name,int d)
 
 void DTInt::dtmemalloc()
 {
-    std::cout<<"DTInt: dtmemalloc\n";
+    if (debugmode) std::cout<<"DTInt: dtmemalloc\n";
     dtmemfree();
 	pData=new (int);
 }
 
 void DTInt::dtmemfree()
 {
-    std::cout<<"DTInt: dtmemfree\n";
+    if (debugmode) std::cout<<"DTInt: dtmemfree\n";
     if (pData!=NULL)
         delete (int*)pData;
     pData=NULL;
@@ -107,7 +107,7 @@ void DTInt::dtmemfree()
 
 char* DTInt::DTName()
 {
-    std::cout<<"DTInt: DTName\n";
+    if (debugmode) std::cout<<"DTInt: DTName\n";
 	char* rs=new char[strlen("signed int")+1];
 	strcpy(rs,"signed int");
 	rs[strlen("signed int")]=0;
@@ -116,7 +116,7 @@ char* DTInt::DTName()
 
 char* DTInt::tostring()
 {
-    std::cout<<"DTInt: tostring\n";
+    if (debugmode) std::cout<<"DTInt: tostring\n";
     char* tmp=new char[100];
     sprintf(tmp,"%d",*(int*)pData);
 	char* rs=new char[strlen(tmp)];
@@ -129,7 +129,7 @@ char* DTInt::tostring()
 
 DTUInt::DTUInt(char* name) //without memalloc!
 {
-	std::cout<<"DTUInt("<<((name!=NULL)?name:"NULL")<<")\n";
+	if (debugmode) std::cout<<"DTUInt("<<((name!=NULL)?name:"NULL")<<")\n";
 	pData=NULL;
 	size=0;
 	if (name!=NULL)
@@ -141,7 +141,7 @@ DTUInt::DTUInt(char* name) //without memalloc!
 
 DTUInt::DTUInt(char*name,unsigned int d)
 {
-	std::cout<<"DTUInt("<<((name!=NULL)?name:"NULL")<<", "<<d<<")\n";
+	if (debugmode) std::cout<<"DTUInt("<<((name!=NULL)?name:"NULL")<<", "<<d<<")\n";
 	dtmemalloc();
 	*((unsigned int*)pData)=d;
 	sIdent=new char[strlen(name)];
@@ -150,14 +150,14 @@ DTUInt::DTUInt(char*name,unsigned int d)
 
 void DTUInt::dtmemalloc()
 {
-    std::cout<<"DTUInt::dtmemalloc\n";
+    if (debugmode) std::cout<<"DTUInt::dtmemalloc\n";
     dtmemfree();
 	pData=new (unsigned int);
 }
 
 void DTUInt::dtmemfree()
 {
-    std::cout<<"DTUInt::dtmemfree()\n";
+    if (debugmode) std::cout<<"DTUInt::dtmemfree()\n";
     if (pData!=NULL)
         delete (unsigned int*)pData;
 	pData=NULL;
@@ -165,11 +165,11 @@ void DTUInt::dtmemfree()
 
 char* DTUInt::DTName()
 {
-//    std::cout<<"DTInt: DTName\n";
+//    if (debugmode) std::cout<<"DTInt: DTName\n";
 //	char* rs=new char[strlen("signed int")];
 //	strcpy(rs,"signed int");
 //	return rs;
-    std::cout<<"DTUInt::DTName()\n";
+    if (debugmode) std::cout<<"DTUInt::DTName()\n";
 	char* rs=new char[13];
 	strcpy(rs,"unsigned int");
 	rs[12]=0;
@@ -178,7 +178,7 @@ char* DTUInt::DTName()
 
 char* DTUInt::tostring()
 {
-    std::cout<<"DTUInt::tostring()\n";
+    if (debugmode) std::cout<<"DTUInt::tostring()\n";
     char* tmp=new char[100];
     sprintf(tmp,"%u",(*(int*)pData));
 	char* rs=new char[strlen(tmp)+1];
@@ -191,7 +191,7 @@ char* DTUInt::tostring()
 
 DTDouble::DTDouble(char* name) //without memalloc!
 {
-	std::cout<<"DTDouble("<<((name!=NULL)?name:"NULL")<<")\n";
+	if (debugmode) std::cout<<"DTDouble("<<((name!=NULL)?name:"NULL")<<")\n";
 	pData=NULL;
 	if (name!=NULL)
 	{
@@ -203,7 +203,7 @@ DTDouble::DTDouble(char* name) //without memalloc!
 
 DTDouble::DTDouble(char*name,double d)
 {
-	std::cout<<"DTDouble("<<((name!=NULL)?name:"NULL")<<", "<<d<<")\n";
+	if (debugmode) std::cout<<"DTDouble("<<((name!=NULL)?name:"NULL")<<", "<<d<<")\n";
 	dtmemalloc();
 	*((double*)pData)=d;
 	if (name!=NULL)
@@ -215,14 +215,14 @@ DTDouble::DTDouble(char*name,double d)
 
 void DTDouble::dtmemalloc()
 {
-    std::cout<<"DTDouble::dtmemalloc()\n";
+    if (debugmode) std::cout<<"DTDouble::dtmemalloc()\n";
     dtmemfree();
 	pData=new (double);
 }
 
 void DTDouble::dtmemfree()
 {
-    std::cout<<"DTDouble::dtmemfree()\n";
+    if (debugmode) std::cout<<"DTDouble::dtmemfree()\n";
     if (pData!=NULL)
         delete (double*)pData;
     pData=NULL;
@@ -230,7 +230,7 @@ void DTDouble::dtmemfree()
 
 char* DTDouble::DTName()
 {
-    std::cout<<"DTDouble::DTName()\n";
+    if (debugmode) std::cout<<"DTDouble::DTName()\n";
 	char* rs=new char[strlen("double")+1];
 	strcpy(rs,"double");
 	rs[strlen("double")]=0;
@@ -239,7 +239,7 @@ char* DTDouble::DTName()
 
 char* DTDouble::tostring()
 {
-    std::cout<<"DTDouble::tostring()\n";
+    if (debugmode) std::cout<<"DTDouble::tostring()\n";
     char* tmp=new char[100];
     sprintf(tmp,"%f",*(double*)pData);
 	char* rs=new char[strlen(tmp)];
@@ -252,7 +252,7 @@ char* DTDouble::tostring()
 
 DTFloat::DTFloat(char* name) //without memalloc!
 {
-	std::cout<<"DTFloat("<<((name!=NULL)?name:"NULL")<<")\n";
+	if (debugmode) std::cout<<"DTFloat("<<((name!=NULL)?name:"NULL")<<")\n";
 	pData=NULL;
 	if (name!=NULL)
 	{
@@ -264,7 +264,7 @@ DTFloat::DTFloat(char* name) //without memalloc!
 
 DTFloat::DTFloat(char*name,float d)
 {
-	std::cout<<"DTFloat("<<((name!=NULL)?name:"NULL")<<", "<<d<<")\n";
+	if (debugmode) std::cout<<"DTFloat("<<((name!=NULL)?name:"NULL")<<", "<<d<<")\n";
 	dtmemalloc();
 	*((float*)pData)=d;
 	if (name!=NULL)
@@ -276,14 +276,14 @@ DTFloat::DTFloat(char*name,float d)
 
 void DTFloat::dtmemalloc()
 {
-    std::cout<<"DTFloat::dtmemalloc()\n";
+    if (debugmode) std::cout<<"DTFloat::dtmemalloc()\n";
     dtmemfree();
 	pData=new (float);
 }
 
 void DTFloat::dtmemfree()
 {
-    std::cout<<"DTFloat::dtmemfree()\n";
+    if (debugmode) std::cout<<"DTFloat::dtmemfree()\n";
     if (pData!=NULL)
         delete (float*)pData;
     pData=NULL;
@@ -291,7 +291,7 @@ void DTFloat::dtmemfree()
 
 char* DTFloat::DTName()
 {
-    std::cout<<"DTFloat::DTName()\n";
+    if (debugmode) std::cout<<"DTFloat::DTName()\n";
 	char* rs=new char[strlen("float")+1];
 	strcpy(rs,"float");
 	rs[strlen("float")]=0;
@@ -300,7 +300,7 @@ char* DTFloat::DTName()
 
 char* DTFloat::tostring()
 {
-    std::cout<<"DTFloat::tostring()\n";
+    if (debugmode) std::cout<<"DTFloat::tostring()\n";
     char* tmp=new char[100];
     sprintf(tmp,"%f",*(float*)pData);
 	char* rs=new char[strlen(tmp)];
@@ -313,7 +313,7 @@ char* DTFloat::tostring()
 
 DTChar::DTChar(char* name) //without memalloc!
 {
-	std::cout<<"DTChar("<<((name!=NULL)?name:"NULL")<<")\n";
+	if (debugmode) std::cout<<"DTChar("<<((name!=NULL)?name:"NULL")<<")\n";
 	pData=NULL;
 	size=0;
 	if (name!=NULL)
@@ -325,7 +325,7 @@ DTChar::DTChar(char* name) //without memalloc!
 
 DTChar::DTChar(char*name,char d)
 {
-	std::cout<<"DTChar("<<((name!=NULL)?name:"NULL")<<", "<<d<<")\n";
+	if (debugmode) std::cout<<"DTChar("<<((name!=NULL)?name:"NULL")<<", "<<d<<")\n";
 	dtmemalloc();
 	*((char*)pData)=d;
 	sIdent=new char[strlen(name)];
@@ -334,14 +334,14 @@ DTChar::DTChar(char*name,char d)
 
 void DTChar::dtmemalloc()
 {
-    std::cout<<"DTChar::dtmemalloc()\n";
+    if (debugmode) std::cout<<"DTChar::dtmemalloc()\n";
     dtmemfree();
 	pData=new char;
 }
 
 void DTChar::dtmemfree()
 {
-    std::cout<<"DTChar::dtmemfree()\n";
+    if (debugmode) std::cout<<"DTChar::dtmemfree()\n";
     if (pData!=NULL)
         delete (char*)pData;
 	pData=NULL;
@@ -349,7 +349,7 @@ void DTChar::dtmemfree()
 
 char* DTChar::DTName()
 {
-    std::cout<<"DTChar::DTName()\n";
+    if (debugmode) std::cout<<"DTChar::DTName()\n";
 	char* rs=new char[strlen("char")+1];
 	strcpy(rs,"char");
 	rs[strlen("char")]=0;
@@ -358,7 +358,7 @@ char* DTChar::DTName()
 
 char* DTChar::tostring()
 {
-    std::cout<<"DTChar::tostring()\n";
+    if (debugmode) std::cout<<"DTChar::tostring()\n";
 	char* rs=new char[2];
 	rs[0]=*((char*)pData);
 	rs[1]=0;
@@ -369,7 +369,7 @@ char* DTChar::tostring()
 
 DTPtr::DTPtr(char* name) //without memalloc!
 {
-	std::cout<<"DTUInt("<<((name!=NULL)?name:"NULL")<<")\n";
+	if (debugmode) std::cout<<"DTUInt("<<((name!=NULL)?name:"NULL")<<")\n";
 	pData=NULL;
 	size=0;
 	if (name!=NULL)
@@ -381,7 +381,7 @@ DTPtr::DTPtr(char* name) //without memalloc!
 
 DTPtr::DTPtr(char*name,char* tp,void* p)
 {
-	std::cout<<"DTPtr("<<((name!=NULL)?name:"NULL")<<", "<<((tp!=NULL)?tp:"NULL")<<", <pointer>"<<")\n";
+	if (debugmode) std::cout<<"DTPtr("<<((name!=NULL)?name:"NULL")<<", "<<((tp!=NULL)?tp:"NULL")<<", <pointer>"<<")\n";
 	dtmemalloc();
 	if (tp!=NULL)
 	{
@@ -398,7 +398,7 @@ DTPtr::DTPtr(char*name,char* tp,void* p)
 
 DTPtr::DTPtr(char*name,char* tp)
 {
-	std::cout<<"DTPtr("<<((name!=NULL)?name:"NULL")<<", "<<((tp!=NULL)?tp:"NULL")<<")\n";
+	if (debugmode) std::cout<<"DTPtr("<<((name!=NULL)?name:"NULL")<<", "<<((tp!=NULL)?tp:"NULL")<<")\n";
 	dtmemalloc();
     _tp=new char[strlen(tp)];
     strcpy(_tp,tp);
@@ -412,14 +412,14 @@ DTPtr::DTPtr(char*name,char* tp)
 
 void DTPtr::dtmemalloc()
 {
-    std::cout<<"DTPtr::dtmemalloc()\n";
+    if (debugmode) std::cout<<"DTPtr::dtmemalloc()\n";
     dtmemfree();
 	pData=new (void**);
 }
 
 void DTPtr::dtmemfree()
 {
-    std::cout<<"DTPtr::dtmemfree()\n";
+    if (debugmode) std::cout<<"DTPtr::dtmemfree()\n";
     if (pData!=NULL)
         delete (void**)pData;
 	pData=NULL;
@@ -427,7 +427,7 @@ void DTPtr::dtmemfree()
 
 char* DTPtr::DTName()
 {
-    std::cout<<"DTPtr::DTName()\n";
+    if (debugmode) std::cout<<"DTPtr::DTName()\n";
     char* rs;
     if (_tp==NULL)
     {
@@ -447,7 +447,7 @@ char* DTPtr::DTName()
 
 char* DTPtr::tostring()
 {
-    std::cout<<"DTPtr::tostring()\n";
+    if (debugmode) std::cout<<"DTPtr::tostring()\n";
     char* rs;
     if (pData==NULL)
     {
@@ -474,7 +474,7 @@ char* DTPtr::tostring()
 
 DTArray::DTArray(char* name,int sz,int c,char* tp) //with memalloc
 {
-	std::cout<<"DTArray("<<((name!=NULL)?name:"NULL")<<", "<<sz<<", "<<c<<", "<<((tp!=NULL)?tp:"NULL")<<")\n";
+	if (debugmode) std::cout<<"DTArray("<<((name!=NULL)?name:"NULL")<<", "<<sz<<", "<<c<<", "<<((tp!=NULL)?tp:"NULL")<<")\n";
 	pData=new char[size*c];
 	size=size*c;
     size_one=sz;
@@ -490,7 +490,7 @@ DTArray::DTArray(char* name,int sz,int c,char* tp) //with memalloc
 
 DTArray::DTArray(char* name,int sz,int c,char* tp,void* init) //with memalloc
 {
-	std::cout<<"DTArray("<<((name!=NULL)?name:"NULL")<<", "<<sz<<", "<<c<<", "<<((tp!=NULL)?tp:"NULL")<<") with init\n";
+	if (debugmode) std::cout<<"DTArray("<<((name!=NULL)?name:"NULL")<<", "<<sz<<", "<<c<<", "<<((tp!=NULL)?tp:"NULL")<<") with init\n";
 	pData=init;
 	size=size*c;
     size_one=sz;
@@ -506,14 +506,14 @@ DTArray::DTArray(char* name,int sz,int c,char* tp,void* init) //with memalloc
 
 void DTArray::dtmemalloc()
 {
-    std::cout<<"DTArray::dtmemalloc()\n";
+    if (debugmode) std::cout<<"DTArray::dtmemalloc()\n";
     dtmemfree();
 	pData=new char[size_one*count];
 }
 
 void DTArray::dtmemfree()
 {
-    std::cout<<"DTArray::dtmemfree()\n";
+    if (debugmode) std::cout<<"DTArray::dtmemfree()\n";
     if (pData!=NULL)
         delete[] pData;
 	pData=NULL;
@@ -521,7 +521,7 @@ void DTArray::dtmemfree()
 
 char* DTArray::DTName()
 {
-    std::cout<<"DTArray::DTName()\n";
+    if (debugmode) std::cout<<"DTArray::DTName()\n";
 	char* rs;
 	sprintf(rs,"array[sz:%i;cnt:%i]",size_one,count);
 	return rs;
@@ -529,7 +529,7 @@ char* DTArray::DTName()
 
 bool DTArray::FillElement(int n,void* buf)
 {
-    std::cout<<"DTArray::FillElement("<<n<<",buf)\n";
+    if (debugmode) std::cout<<"DTArray::FillElement("<<n<<",buf)\n";
     if (n>=count) return false;
     void* p=(char*)pData+(n*size_one);
     //p=buf;
@@ -545,15 +545,15 @@ bool DTArray::FillElement(int n,void* buf)
 
     //char* x=new char[100];
     //memcpy(x,*(void**)p,size_one);
-    //std::cout<<*(char**)p<<"\n";
-    //std::cout<<*(char**)p<<"\n";
+    //if (debugmode) std::cout<<*(char**)p<<"\n";
+    //if (debugmode) std::cout<<*(char**)p<<"\n";
     delete o;
     return true;
 }
 
 DTVar* DTArray::GetElement(int n)
 {
-    std::cout<<"DTArray::GetElement("<<n<<")\n";
+    if (debugmode) std::cout<<"DTArray::GetElement("<<n<<")\n";
     //void* p=*(void**)pData;//(char*)pData+(n*size_one);
     DTVar* o=ParseDataTypeString(type_one,NULL,NULL, NULL);
     //(*(DTMain*)(o->T)).pData=*((void**)((char*)pData+(n*size_one)));//*(void**)(p);
@@ -572,7 +572,7 @@ DTVar* DTArray::GetElement(int n)
 
 char* DTArray::tostring()
 {
-    std::cout<<"DTArray::tostring()\n";
+    if (debugmode) std::cout<<"DTArray::tostring()\n";
     std::string st;
     DTVar* o;
     for(int i=0;i<count;i++)
@@ -681,7 +681,7 @@ DTVar* CalculateAssignation(DTMain* a,DTMain* b, ag::list<DTVar*>* local)
         rl->add_tail(rse);
         DTVar* dv=ParseDataTypeString(a->DTName(),a->sIdent,rl,local);
         a->assign((DTMain*)(dv->T));
-        std::cout<<"CalculateAssignation(): a="<<a->tostring()<<"\n";
+        if (debugmode) std::cout<<"CalculateAssignation(): a="<<a->tostring()<<"\n";
     }else
     {
         std::string ret="Uncompatible types in assignation: <";
@@ -925,10 +925,10 @@ DTVar* ParseDataTypeString(char* sDT,char* sName, rpnlist* data, ag::list<DTVar*
     try{
 
         DTVar* k=new DTVar;
-        std::cout<<"sDT: "<<sDT<<"\n";
+        if (debugmode) std::cout<<"sDT: "<<sDT<<"\n";
         if (sDT[strlen(sDT)-1]=='*')
         {
-            std::cout<<sDT<<" is pointer\n";
+            if (debugmode) std::cout<<sDT<<" is pointer\n";
             char* ss=new char[strlen(sDT)];
             strcpy(ss,sDT);
             ss[strlen(ss)-1]=0;
@@ -941,7 +941,7 @@ DTVar* ParseDataTypeString(char* sDT,char* sName, rpnlist* data, ag::list<DTVar*
             k->T=new DTPtr(sName,ss);
             return k;
         }
-        std::cout<<sDT<<" is native data\n";
+        if (debugmode) std::cout<<sDT<<" is native data\n";
         k->dtet=dtetNative;
         if ((strcmp(sDT,"signed int")==0)||(strcmp(sDT,"int")==0))
         {
@@ -969,18 +969,18 @@ DTVar* ParseDataTypeString(char* sDT,char* sName, rpnlist* data, ag::list<DTVar*
             strcat(K,sDT);
             throw K;
         }
-        std::cout<<"Parsing DT finished\n";
+        if (debugmode) std::cout<<"Parsing DT finished\n";
         return k;
     }catch(char* o)
     {
-        std::cout<<"(ERROR) "<<o<<"\n";
+        if (debugmode) std::cout<<"(ERROR) "<<o<<"\n";
     }
     catch(const char* k)
     {
-        std::cout<<"(Error): "<<k<<"\n";
+        if (debugmode) std::cout<<"(Error): "<<k<<"\n";
     }
     catch(...)
     {
-        std::cout<<"(UERROR)\n";
+        if (debugmode) std::cout<<"(UERROR)\n";
     }
 }
