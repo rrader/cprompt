@@ -13,7 +13,8 @@ char sPassSymb[]=" \xD\xA\x9";
 char sBreakSymb[]="\xD\xA";
 char sEofSymb[]="\x0";
 char sSpaceSymb[]=" ";
-
+//char sQuoteStart[]="\"";
+//char sQuoteEnd[]="\"\'";
 
 ag::set stTxtSymb (sTxtSymb);
 ag::set stNumSymb (sNumSymb);
@@ -23,6 +24,8 @@ ag::set stEofSymb(sEofSymb);
 ag::set stSpaceSymb(sSpaceSymb);
 ag::set sIdentSymbs(sTxtSymb);
 ag::set sIdentSymbs2(sTxtSymb);
+//ag::set sQuoteStartSymbs(sQuoteStart);
+//ag::set sQuoteEndSymbs(sQuoteEnd);
 
 void CPRTokenInfo::operator=(CPRTokenInfo& _sec)
 {
@@ -50,6 +53,11 @@ void CPRTokenInfo::operator=(CPRTokenInfo& _sec)
         bReadEOLN=Value;
     }
 
+    void CPRParser::SetReadQuotedStrings(bool Value)
+    {
+        bReadQuotedStrings=Value;
+    }
+
     void CPRParser::SetReadSpaces(bool Value)
     {
         bReadSpaces=Value;
@@ -63,6 +71,11 @@ void CPRTokenInfo::operator=(CPRTokenInfo& _sec)
     bool CPRParser::GetNegativeNumbers()
     {
         return bReadNegativeNumbers;
+    };
+
+    bool CPRParser::GetReadQuotedStrings()
+    {
+        return bReadQuotedStrings;
     };
 
     bool CPRParser::GetReadEOLN()
@@ -94,6 +107,8 @@ CPRParser::CPRParser(char* sText,int offset)
     bReadSpaces=false;
     bReadEOLN=false;
     bReadNegativeNumbers=false;
+    bReadQuotedStrings=false;
+    bInTheQString=false;
     sIdentSymbs=sTxtSymb;
 }
 
@@ -146,7 +161,6 @@ CPRParserExpType CPRParser::NewPosition()
     }
     else
     {
-
         if (stSpaceSymb%sPText[iPosition])
         {
             petCurrType=petSpace;
@@ -210,28 +224,41 @@ char* CPRParser::Next(bool bClearLast)
         strcpy(sres,sCurrText);
         iLen=iCurrLength;
     }
-    do
+
+    if ((bReadQuotedStrings)&&(sPText[iPosition]=='"'))
     {
-        if ((sPText[iPosition]=='-')&&(stCurrSymbs%"-"))
-            stCurrSymbs-='-';
-        if ((ag::set(sres)%'.')&&(sPText[iPosition]=='.'))
-            break;
-
-        if ((sPText[iPosition]=='e')&&((petCurrType==petFloat)||(petCurrType==petInt)))
+        sres[iLen++]=sPText[iPosition++];
+        while((!(sPText[iPosition]=='"'))&&(iPosition<iSize))
         {
-            if ((iPosition+1<iSize)&&(ag::set("0123456789-")%sPText[iPosition+1]))
-                stCurrSymbs+='-';
-            else break;
+            sres[iLen++]=sPText[iPosition++];
         }
+        sres[iLen++]=sPText[iPosition++];
+        petCurrType=petQuotedStr;
+    }else
+    {
+        do
+        {
+            if ((sPText[iPosition]=='-')&&(stCurrSymbs%"-"))
+                stCurrSymbs-='-';
+            if ((ag::set(sres)%'.')&&(sPText[iPosition]=='.'))
+                break;
 
-        if ((sPText[iPosition]=='.')&&(petCurrType=petInt))
-            petCurrType=petFloat;
+            if ((sPText[iPosition]=='e')&&((petCurrType==petFloat)||(petCurrType==petInt)))
+            {
+                if ((iPosition+1<iSize)&&(ag::set("0123456789-")%sPText[iPosition+1]))
+                    stCurrSymbs+='-';
+                else break;
+            }
 
-        sres[iLen]=sPText[iPosition];
-        iLen++;
-        iPosition++;
+            if ((sPText[iPosition]=='.')&&(petCurrType=petInt))
+                petCurrType=petFloat;
+
+            sres[iLen]=sPText[iPosition];
+            iLen++;
+            iPosition++;
+        }
+        while (((iPosition<iSize)&&(stCurrSymbs.present(sPText[iPosition]))));
     }
-    while (((iPosition<iSize)&&(stCurrSymbs.present(sPText[iPosition]))));
     sCurrText=sres;
     iCurrLength=iLen;
     return sres;

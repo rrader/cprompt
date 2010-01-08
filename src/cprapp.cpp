@@ -58,7 +58,7 @@ char* CPRApplication::GetFileText(char* sFName)
     return res;
 }
 
-void CPRApplication::ParseIt(ag::list<CPRTokenInfo>* pTok,char* sText,bool bReadEoln, bool bReadSpaces)
+void CPRApplication::ParseIt(ag::list<CPRTokenInfo>* pTok,char* sText,bool bReadEoln, bool bReadSpaces, bool bReadQStr)
 {
     char* psText;
     if (sText==NULL)
@@ -71,6 +71,7 @@ void CPRApplication::ParseIt(ag::list<CPRTokenInfo>* pTok,char* sText,bool bRead
     CPRParser cParser(psText);
     cParser.SetReadEOLN(bReadEoln);
     cParser.SetReadSpaces(bReadSpaces);
+    cParser.SetReadQuotedStrings(bReadQStr);
     CPRTokenInfo i;
     ag::list<CPRTokenInfo>*pTokens;
     if (pTok!=NULL)

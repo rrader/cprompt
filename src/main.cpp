@@ -113,7 +113,7 @@ CPRTreeNode* MakeCPRTreeNode(CPRTreeNodeType tp, char* text,char*text2,char*text
     k->r2=rx2;
     k->r3=rx3;
 
-    q=new int; //лучше не трогать
+//    q=new int; //лучше не трогать
     return k;
 }
 
@@ -168,6 +168,7 @@ debugmode=false;
 
     if (debugmode) std::cout << "Hello at the CPrompt's interpreter p_argc=" << argc-1 << "\n";
     if (debugmode) std::cout << "Executing the c-script: " << argv[argnum] << "\n";
+
     try
     {
         if (argc<=1)
@@ -178,10 +179,11 @@ debugmode=false;
 
         App.SetFile(argv[argnum]);
         if (debugmode) std::cout<<"1. Pre-parsing\n";
-    //    App.ParseIt(&App.aTokens,App.GetCurrentFileText(),true,true);
-    //    for(ag::list<CPRTokenInfo>::member p=App.aTokens.head;p!=NULL;p=p->next)
-    //        if (debugmode) std::cout << p->data.sCurrText << ": " << p->data.petCurrType << "; ";
+        App.ParseIt(&App.aTokens,App.GetCurrentFileText(),true,true,true);
+        for(ag::list<CPRTokenInfo>::member p=App.aTokens.head;p!=NULL;p=p->next)
+            if (debugmode) std::cout << p->data.sCurrText << ": " << p->data.petCurrType << "; \n";
         if (debugmode) std::cout<<"\n\n";
+
         if (debugmode) std::cout<<"2. Preprocessing\n";
         App.Preprocessing(NULL, App.GetCurrentFileText(),App.GetWorkDir());
         if (debugmode) std::cout<<App.GetCurrentFileText()<<"\n";

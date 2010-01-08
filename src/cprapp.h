@@ -49,7 +49,7 @@ public:
     void SetFile(char* sText);
     char* GetFileText(char* sFName);
 
-    void ParseIt(ag::list<CPRTokenInfo>* pTok=NULL,char* sText=NULL, bool bReadEoln=false, bool bReadSpaces=false);
+    void ParseIt(ag::list<CPRTokenInfo>* pTok=NULL,char* sText=NULL, bool bReadEoln=false, bool bReadSpaces=false, bool bReadQStr=true);
     void PreParseIt(ag::list<CPRTokenInfo>* pTok=NULL,char* sText=NULL);
     void Preprocessing(char**saveto=NULL,char* sText=NULL, char* workdir=NULL);
     void BuildTree(char* workpath, ag::list<CPRTokenInfo>* pTok,char* sftext,ag::tree<CPRTreeNode*>*parent);

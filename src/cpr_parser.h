@@ -12,7 +12,7 @@ extern ag::set stSpaceSymb;
 extern ag::set sIdentSymbs;
 
 enum CPRParserExpType {petNone=0,petString=1,petInt=2,petFloat=3,petOther=4,
-                       petSpace=5,petEOLN=6,petEOF=7,petOper=8};
+                       petSpace=5,petEOLN=6,petEOF=7,petOper=8,petQuotedStr=9};
 
 struct CPRTokenInfo
 {
@@ -47,7 +47,9 @@ public:
     void  SetReadNegativeNumbers(bool Value);
     void  SetReadEOLN(bool Value);
     void  SetReadSpaces(bool Value);
+    void  SetReadQuotedStrings(bool Value);
     bool  GetReadSpaces();
+    bool  GetReadQuotedStrings();
     bool  GetNegativeNumbers();
     bool  GetReadEOLN();
     int   CurrPosition();
@@ -63,7 +65,9 @@ public:
     ag::set stCurrSymbs;
     bool bReadSpaces;
     bool bReadEOLN;
+    bool bReadQuotedStrings;
     bool bReadNegativeNumbers;
+    bool bInTheQString;
 };
 
 
