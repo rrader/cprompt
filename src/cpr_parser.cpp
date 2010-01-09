@@ -5,7 +5,6 @@
 #include <fstream>
 extern bool debugmode;
 
-
 char sTxtSymb[]="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 //АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЫЪЭЮЯабвгдеёжзийклмнопрстуфхцчшщьыъэюя";
 char sNumSymb[]="0123456789.e";
@@ -32,8 +31,9 @@ void CPRTokenInfo::operator=(CPRTokenInfo& _sec)
     iCurrLength=_sec.iCurrLength;
     iStartPos=_sec.iStartPos;
     iFinishPos=_sec.iFinishPos;
-    sCurrText=new char[strlen(_sec.sCurrText)];
+    sCurrText=new char[strlen(_sec.sCurrText)+1];
     strcpy(sCurrText,_sec.sCurrText);
+    sCurrText[strlen(_sec.sCurrText)]=0;
     stCurrSymbs=_sec.stCurrSymbs;
     petCurrType=_sec.petCurrType;
 }
@@ -215,7 +215,6 @@ char* CPRParser::Next(bool bClearLast)
 //    }
     PassSymbs();
     NewPosition();
-
     char* sres=new char[256];
     memset(sres,0,256);
     int iLen=0;
@@ -227,8 +226,28 @@ char* CPRParser::Next(bool bClearLast)
 
     if ((bReadQuotedStrings)&&(sPText[iPosition]=='"'))
     {
-        sres[iLen++]=sPText[iPosition++];
-        while(((sres[iLen++]=sPText[iPosition++])=='"')&&(iPosition<iSize));
+        //int* K=new int;
+        sres[iLen]=sPText[iPosition];
+        if (debugmode) std::cout<<sres[iLen];
+        if (debugmode) std::cout.flush();
+        stCurrSymbs+=sres[iLen];
+        iPosition++; iLen++;
+        while(sPText[iPosition]!='"')
+        {
+            sres[iLen]=sPText[iPosition];
+            if (debugmode) std::cout<<sres[iLen];
+            if (debugmode) std::cout.flush();
+            stCurrSymbs+=sres[iLen];
+            iLen++;
+            iPosition++;
+            if (iPosition>=iSize) break;
+        }
+        sres[iLen]=sPText[iPosition];
+        if (debugmode) std::cout<<sres[iLen]<<"\n";
+        std::cout.flush();
+        stCurrSymbs+=sres[iLen];
+        iLen++;
+        iPosition++;
         petCurrType=petQuotedStr;
     }else
     {
@@ -256,7 +275,9 @@ char* CPRParser::Next(bool bClearLast)
         while (((iPosition<iSize)&&(stCurrSymbs.present(sPText[iPosition]))));
     }
     //sres[iLen]=0;
-    sCurrText=sres;
+    sCurrText=new char[strlen(sres)+1];
+    strcpy(sCurrText,sres);
+    sCurrText[strlen(sres)]=0;
     iCurrLength=iLen;
     return sres;
 }

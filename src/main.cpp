@@ -210,6 +210,7 @@ debugmode=false;
     {
 
         App.SetFile(argv[argnum]);
+        App.HashBang();
         if (debugmode) std::cout<<"1. Pre-parsing\n";
         App.ParseIt(&App.aTokens,App.GetCurrentFileText(),true,true,true);
         for(ag::list<CPRTokenInfo>::member p=App.aTokens.head;p!=NULL;p=p->next)
@@ -227,7 +228,9 @@ debugmode=false;
         {
             if (p->data.petCurrType==petQuotedStr)
             {
-                std::string tms=p->data.sCurrText;
+                std::string tms;
+                tms=p->data.sCurrText;
+                std::cout<<tms<<"\n";
                 replace(tms,"\\n","\n");
                 replace(tms,"\\t","\t");
                 replace(tms,"\\v","\v");
@@ -244,6 +247,7 @@ debugmode=false;
                 strcpy(tmsp,tms.c_str());
                 tmsp[tms.size()]=0;
                 p->data.sCurrText=tmsp;
+                std::cout<<tms<<"\n";
             }
         }
 

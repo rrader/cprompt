@@ -56,6 +56,7 @@ public:
     void ExecMainTree(ag::tree<CPRTreeNode*>* T);
     void ExecTree(ag::tree<CPRTreeNode*>* T,ag::list<DTVar*>* ExternalVars=NULL, char* retname=NULL);
     void ExecOutside(ag::tree<CPRTreeNode*>* T);
+    bool HashBang();
 
     char* ReadTypename(ag::list<CPRTokenInfo>::member& p);
     bool  IsTypename(ag::list<CPRTokenInfo>::member p);

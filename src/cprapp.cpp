@@ -655,7 +655,16 @@ void CPRApplication::Preprocessing(char** saveto, char* sText, char* workdir)
     // 3) обработка pragma
     ;
     // 4) обработка комментариев
-    ;
+    //PreprocessComments      (saveto,((saveto!=NULL)?*saveto:sPText),workdir);
+}
+
+bool CPRApplication::HashBang()
+{
+    if ((sPText[0]=='#')&&(sPText[1]=='!'))
+    {
+        while((sPText[0]!='\xA')&&(sPText[0]!='\x0')) sPText++;
+        sPText++;
+    }
 }
 
 void CPRApplication::BuildTree(char* workpath, ag::list<CPRTokenInfo>* pTok,char* sftext,ag::tree<CPRTreeNode*>*parent)

@@ -17,8 +17,6 @@ CallCDeclFloatFunc CallCDecl_Float = (CallCDeclFloatFunc) CallCDecl;
 CallCDeclDoubleFunc CallCDecl_Double = (CallCDeclDoubleFunc) CallCDecl;
 CallCDeclPointerFunc CallCDecl_Pointer = (CallCDeclPointerFunc) CallCDecl;
 
-
-// REVERSE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 void* CPRApplication::CreateBufferFromStackStdCall(ag::list<CPRTextDataType>* params,int& WordCount)
 {
     int count=params->count();
