@@ -22,6 +22,11 @@ CallCDeclPointerFunc CallCDecl_Pointer = (CallCDeclPointerFunc) CallCDecl;
 void* CPRApplication::CreateBufferFromStackStdCall(ag::list<CPRTextDataType>* params,int& WordCount)
 {
     int count=params->count();
+    ag::stack<DTVar*> lStack;
+    for(int i=0;i<count;i++)
+    {
+        lStack.push(aStack.pop());
+    }
     ag::list<CPRTextDataType>::member pm;
     DTVar*v,*dv;
     int size=0;
@@ -48,10 +53,10 @@ void* CPRApplication::CreateBufferFromStackStdCall(ag::list<CPRTextDataType>* pa
     void* buf=new char[size];
     WordCount=size/4;
     int offset=0;
-    pm=params->head;
+    pm=params->tail;
     for(int i=0;i<count;i++)
     {
-        v=aStack.pop();
+        v=lStack.pop();
         dv=ParseDataTypeString(pm->data.str1,pm->data.str2,NULL,NULL);
         switch(((DTMain*)(dv->T))->typeoftype())
         {
@@ -95,7 +100,7 @@ void* CPRApplication::CreateBufferFromStackStdCall(ag::list<CPRTextDataType>* pa
                 }
         }
         offset+=((DTMain*)(dv->T))->sizeoftype();
-        pm=pm->next;
+        pm=pm->prev;
     }
     return buf;
 }

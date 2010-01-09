@@ -38,7 +38,9 @@ char* DTMain::DTFullName()
 	if (debugmode) std::cout<<"DTName()="<<n<<"\n";
 
 	if (sIdent==NULL)
+	{
         if (debugmode) std::cout<<"sIdent=NULL\n";
+	}
     else
 	{
         if (debugmode) std::cout<<"sIdent="<<sIdent<<"\n";
@@ -515,14 +517,14 @@ void DTArray::dtmemfree()
 {
     if (debugmode) std::cout<<"DTArray::dtmemfree()\n";
     if (pData!=NULL)
-        delete[] pData;
+        delete pData;
 	pData=NULL;
 }
 
 char* DTArray::DTName()
 {
     if (debugmode) std::cout<<"DTArray::DTName()\n";
-	char* rs;
+	char* rs=new char[100];
 	sprintf(rs,"array[sz:%i;cnt:%i]",size_one,count);
 	return rs;
 }

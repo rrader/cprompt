@@ -228,11 +228,7 @@ char* CPRParser::Next(bool bClearLast)
     if ((bReadQuotedStrings)&&(sPText[iPosition]=='"'))
     {
         sres[iLen++]=sPText[iPosition++];
-        while((!(sPText[iPosition]=='"'))&&(iPosition<iSize))
-        {
-            sres[iLen++]=sPText[iPosition++];
-        }
-        sres[iLen++]=sPText[iPosition++];
+        while(((sres[iLen++]=sPText[iPosition++])=='"')&&(iPosition<iSize));
         petCurrType=petQuotedStr;
     }else
     {
@@ -259,6 +255,7 @@ char* CPRParser::Next(bool bClearLast)
         }
         while (((iPosition<iSize)&&(stCurrSymbs.present(sPText[iPosition]))));
     }
+    //sres[iLen]=0;
     sCurrText=sres;
     iCurrLength=iLen;
     return sres;
@@ -304,7 +301,7 @@ void CPRParser::PassSymbs()
 char* CPRParser::ReadIdent()
 {
     if (debugmode) std::cout<<"CPRParser::ReadIdent()\n";
-    int* J=new int; //не трогать!
+    //int* J=new int; //не трогать! q
     ag::set sAllowed;
     sAllowed=sIdentSymbs;
     int iPos1=iPosition-iCurrLength;

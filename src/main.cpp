@@ -7,6 +7,7 @@ CPRApplication* AppV;
 #include <fstream>
 #include <string.h>
 #include <fstream>
+#include <sys/stat.h>
 bool debugmode;
 int argnum;
 
@@ -15,6 +16,23 @@ int argnum;
 #include "cprapp.h"
 #include "cprtypes.h"
 
+bool FileExists(char* strFilename)
+{
+    struct stat stFileInfo;
+    bool blnReturn;
+    int intStat;
+
+    intStat = stat(strFilename,&stFileInfo);
+    if(intStat == 0)
+    {
+        blnReturn = true;
+    } else
+    {
+        blnReturn = false;
+    }
+
+    return(blnReturn);
+}
 
 char* concat(char* s1,char* s2)
 {
@@ -144,6 +162,15 @@ void FillCPRTreeNode(CPRTreeNode* k,CPRTreeNodeType tp, char* text,char*text2,ch
     }
 }
 
+void replace(std::string& text, std::string s, std::string d)
+{
+  for(unsigned index=0; index=text.find(s, index), index!=std::string::npos;)
+  {
+    text.replace(index, s.length(), d);
+    index+=d.length();
+  }
+}
+
 //int f_argc;
 //char** f_argv;
 int main(int argc,char* argv[])
@@ -155,15 +182,25 @@ debugmode=false;
 	CPRApplication App;
 	::AppV=&App;
 	argnum=1;
+    if (argc<=1)
+    {
+        std::cout<<"Usage: cprompt \"/path/to/your/script.c\"\n";
+        return 0;
+    }
 	if (strcmp(argv[1],"--dbg")==0)
 	{
 	    debugmode=true;
 	    argnum++;
+        if (argc<=2)
+        {
+            std::cout<<"Usage: cprompt \"/path/to/your/script.c\"\n";
+            return 0;
+        }
 	}
-    std::string qw=argv[argnum];
-    qw+=".log";
-    //if (debugmode) std::cout.open (qw.c_str(), std::ios::binary );
-//    if (debugmode) std::cout.open(&std::cout);
+    if (!FileExists(argv[argnum]))
+    {
+        std::cout<<"(FATAL ERROR) File not found\n";
+    }
     if (debugmode) std::cout<<"Start...\n";
 
     if (debugmode) std::cout << "Hello at the CPrompt's interpreter p_argc=" << argc-1 << "\n";
@@ -171,18 +208,13 @@ debugmode=false;
 
     try
     {
-        if (argc<=1)
-        {
-            if (debugmode) std::cout<<"Usage: cprompt \"/path/to/your/cprompt/script.cp\"\n";
-            return 0;
-        }
 
         App.SetFile(argv[argnum]);
         if (debugmode) std::cout<<"1. Pre-parsing\n";
         App.ParseIt(&App.aTokens,App.GetCurrentFileText(),true,true,true);
         for(ag::list<CPRTokenInfo>::member p=App.aTokens.head;p!=NULL;p=p->next)
             if (debugmode) std::cout << p->data.sCurrText << ": " << p->data.petCurrType << "; \n";
-        if (debugmode) std::cout<<"\n\n";
+        //if (debugmode) std::cout<<"\n\n";
 
         if (debugmode) std::cout<<"2. Preprocessing\n";
         App.Preprocessing(NULL, App.GetCurrentFileText(),App.GetWorkDir());
@@ -190,6 +222,31 @@ debugmode=false;
         if (debugmode) std::cout<<"3. Post-parsing\n";
         App.aTokens.delall();
         App.ParseIt(&App.aTokens,App.GetCurrentFileText(),false,false);
+
+        for(ag::list<CPRTokenInfo>::member p=App.aTokens.head;p!=NULL;p=p->next)
+        {
+            if (p->data.petCurrType==petQuotedStr)
+            {
+                std::string tms=p->data.sCurrText;
+                replace(tms,"\\n","\n");
+                replace(tms,"\\t","\t");
+                replace(tms,"\\v","\v");
+                replace(tms,"\\b","\b");
+                replace(tms,"\\r","\r");
+                replace(tms,"\\f","\f");
+                replace(tms,"\\a","\a");
+                replace(tms,"\\\\","\\");
+                replace(tms,"\\?","\?");
+                replace(tms,"\\\'","\'");
+                replace(tms,"\\\"","\"");
+                replace(tms,"\\0","\0");
+                char* tmsp=new char[tms.size()+1];
+                strcpy(tmsp,tms.c_str());
+                tmsp[tms.size()]=0;
+                p->data.sCurrText=tmsp;
+            }
+        }
+
         if (debugmode) std::cout<<"4. Building the main tree\n";
         App.BuildTree(App.GetWorkDir(), &App.aTokens, App.GetCurrentFileText(), NULL);
         if (debugmode) std::cout<<"Tree was built:\n";
