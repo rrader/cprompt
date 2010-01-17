@@ -1,0 +1,11 @@
+#!/usr/bin/CPrompt
+#include <math.h>
+outside cdecl: int printf(char*s,...);
+outside cdecl: int scanf (char*s,...);
+
+int main(int argv,char* argc[])
+{
+    float x;
+    scanf("%f",&x);
+    printf("%f\n",x);
+}
