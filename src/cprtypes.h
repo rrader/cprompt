@@ -222,4 +222,5 @@ DTVar* ParseDataTypeString(char* sDT,char* sName, rpnlist* data, ag::list<DTVar*
 DTVar* CalculateAct2op(DTMain* a,DTMain* b,char c1,char c2, ag::list<DTVar*>* local);
 DTVar* CalculateAct1op(DTMain* a,char c1,char c2);
 DTVar* CalculateAssignation(DTMain* a,DTMain* b, ag::list<DTVar*>* local);
+DTVar* DTMakeCopy(DTVar* x);
 #endif // CPRTYPES_INCLUDED

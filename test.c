@@ -13,7 +13,8 @@ double round(double value )
 int main(int argc,char* argv[])
 {
     float x=1;
+    scanf("%f",&x);
     int l=round(x);
-    printf("%f = %d;\n",x,l);
+    printf("round(%f) = %d;\n",x,l);
 }
 

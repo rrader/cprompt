@@ -639,9 +639,6 @@ bool DTArray::FillElement(int n,void* buf)
     else
         *(int*)p=(int)(buf);
 
-
-
-
     //char* x=new char[100];
     //memcpy(x,*(void**)p,size_one);
     //if (debugmode) std::cout<<*(char**)p<<"\n";
@@ -1146,7 +1143,20 @@ void* DoDoubleInitializeActions(int t,char* sDT,char* sName, rpnlist* data,DTVar
 
 DTVar* DTMakeCopy(DTVar* x)
 {
-    DTVar* m = ParseDataTypeString(((DTMain*)(x->T))->DTName(),((DTMain*)(x->T))->sIdent,NULL,NULL);
+    DTVar* m;
+    if (((DTMain*)(x->T))->typeoftype()==4) // check for correctly work
+    {
+        m=new DTVar;
+        m->dtet=dtetNative;
+        m->T=new DTArray(((DTMain*)(x->T))->sIdent,((DTArray*)(x->T))->size_one,((DTArray*)(x->T))->count,((DTArray*)(x->T))->type_one);
+        ((DTArray*)(m->T))->pData=new char[((DTArray*)(x->T))->size_one*((DTArray*)(x->T))->count];
+        memcpy(((DTArray*)(m->T))->pData,((DTArray*)(x->T))->pData,((DTArray*)(x->T))->size_one*((DTArray*)(x->T))->count);
+    }else
+    {
+        m = ParseDataTypeString(((DTMain*)(x->T))->DTName(),((DTMain*)(x->T))->sIdent,NULL,NULL);
+        CalculateAssignation((DTMain*)(m->T),(DTMain*)(x->T),NULL);
+    }
+    return m;
 }
 
 DTVar* ParseDataTypeString(char* sDT,char* sName, rpnlist* data, ag::list<DTVar*>* local)

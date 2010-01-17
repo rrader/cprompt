@@ -570,7 +570,7 @@ ag::stack<DTVar*>* CalculateRPN(rpnlist* rpn, ag::list<DTVar*>* local)
                     while ((m!=NULL)&&(((DTMain*)(m->T))->typeoftype()!=5))
                     {
                         count_prms++;
-                        (CPRApplication*)(AppV->aStack).push(m);
+                        (CPRApplication*)(AppV->aStack).push(DTMakeCopy(m));
                         if (m==NULL) break;
                         m=st->pop();
                         if (debugmode) std::cout<<(((DTMain*)(m->T))->tostring())<<"\n";

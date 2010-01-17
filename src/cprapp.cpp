@@ -1156,6 +1156,7 @@ void CPRApplication::ExecOutside(ag::tree<CPRTreeNode*>* T)
 
 void CPRApplication::OutVarList(ag::list<DTVar*>* Vars)
 {
+    if (Vars==NULL) return;
     int b=0;
     if (debugmode) std::cout<<"Vars.count="<<Vars->count()<<"\n";
     for (ag::list<DTVar*>::member m=Vars->head;m!=NULL;m=m->next)
