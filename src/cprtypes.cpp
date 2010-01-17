@@ -782,7 +782,6 @@ DTVar* CalculateAssignation(DTMain* a,DTMain* b, ag::list<DTVar*>* local)
 {
     if (((a->typeoftype()==b->typeoftype()))&&(a->typeoftype()==3))
     {
-        a->dtmemfree();
         a->pData=b->pData;
     }else if ((a->typeoftype()==3)&&(b->typeoftype()==4))
     {

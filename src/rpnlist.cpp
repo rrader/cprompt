@@ -589,6 +589,7 @@ ag::stack<DTVar*>* CalculateRPN(rpnlist* rpn, ag::list<DTVar*>* local)
                     j=((CPRApplication*)AppV)->FindVariable((char*)m->data->d, local);
                     if (j!=NULL)
                     {
+                        if (debugmode) std::cout<<"    "<<((*((DTMain*)j->T)).DTFullName())<<" = "<<((*((DTMain*)j->T)).tostring())<<"\n";
                         st->push(j);
                         if (debugmode) std::cout<<"    "<<((*((DTMain*)j->T)).DTFullName())<<" = "<<((*((DTMain*)j->T)).tostring())<<"\n";
                     }else

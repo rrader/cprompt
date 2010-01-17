@@ -10,7 +10,7 @@ CPRApplication* AppV;
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-
+#include <memory.h>
 bool debugmode;
 int argnum;
 

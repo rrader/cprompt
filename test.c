@@ -5,16 +5,9 @@ outside cdecl: int sprintf (char* str, char* format, ... );
 outside cdecl: void* malloc (int size);
 outside cdecl: int strlen(char* s);
 
-double round(double value )
-{
-  return floor( value + 0.5 );
-}
-
 int main(int argc,char* argv[])
 {
-    float x=1;
-    scanf("%f",&x);
-    int l=round(x);
-    printf("round(%f) = %d;\n",x,l);
+    char* x="1234567890";
+    x=x+3;
+    printf("%s",x);
 }
-
