@@ -135,8 +135,9 @@ void CPRParser::SetFile(char* sName)
     file.seekg (0, std::ios::end);
     int length = file.tellg();
     file.seekg (0, std::ios::beg);
-    sPText=new char[length];
+    sPText=new char[length+1];
     file.read(sPText,length);
+    sPText[length]=0;
     file.close();
     iPosition=0;
 }

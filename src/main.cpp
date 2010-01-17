@@ -3,11 +3,14 @@ class CPRApplication;
 int argc;
 char** argv;
 CPRApplication* AppV;
-#include <iostream>
 #include <fstream>
 #include <string.h>
+#include <iostream>
 #include <fstream>
+#include <sys/types.h>
 #include <sys/stat.h>
+#include <fcntl.h>
+
 bool debugmode;
 int argnum;
 
@@ -15,6 +18,8 @@ int argnum;
 #include "main.h"
 #include "cprapp.h"
 #include "cprtypes.h"
+
+bool po_a,pi_a;
 
 bool FileExists(char* strFilename)
 {
@@ -75,7 +80,7 @@ CPRTreeNode* MakeCPRTreeNode(CPRTreeNodeType tp, char* text,char*text2,char*text
     {
         //k->text4
         i4=strlen(text4);
-        s4=new char[i4];
+        s4=new char[i4+1];
         //int k=0; while(s4[k++]=text4[k]);
 //        strcpy(s4,text4);
     } else
@@ -86,7 +91,7 @@ CPRTreeNode* MakeCPRTreeNode(CPRTreeNodeType tp, char* text,char*text2,char*text
     {
         //k->text3
         i3=strlen(text3);
-        s3=new char[i3];
+        s3=new char[i3+1];
         //int k=0; while(s3[k++]=text3[k]);
 //        strcpy(s3,text3);
     } else
@@ -97,7 +102,7 @@ CPRTreeNode* MakeCPRTreeNode(CPRTreeNodeType tp, char* text,char*text2,char*text
     {
         //k->text2
         i2=strlen(text2);
-        s2=new char[i2];
+        s2=new char[i2+1];
         //int k=0; while(s2[k++]=text2[k]);
 //        strcpy(s2,text2);
     } else
@@ -108,7 +113,7 @@ CPRTreeNode* MakeCPRTreeNode(CPRTreeNodeType tp, char* text,char*text2,char*text
     {
         //k->text
         i1=strlen(text);
-        s1=new char[i1];
+        s1=new char[i1+1];
         //int k=0; while(s1[k++]=text[k]);
 //        strcpy(s1,text);
     } else
@@ -118,10 +123,10 @@ CPRTreeNode* MakeCPRTreeNode(CPRTreeNodeType tp, char* text,char*text2,char*text
     if (debugmode) std::cout<<"Lendths: "<<i1<<", "<<i2<<", "<<i3<<", "<<i4<<"\n";
     int* q=new int; //лучше не трогать
 
-    if (i1!=0) strcpy(s1,text);
-    if (i2!=0) strcpy(s2,text2);
-    if (i3!=0) strcpy(s3,text3);
-    if (i4!=0) strcpy(s4,text4);
+    if (i1!=0) { strcpy(s1,text); s1[i1]=0;}
+    if (i2!=0) { strcpy(s2,text2); s2[i2]=0;}
+    if (i3!=0) { strcpy(s3,text3); s3[i3]=0;}
+    if (i4!=0) { strcpy(s4,text4); s4[i4]=0;}
     k->text=s1;
     k->text2=s2;
     k->text3=s3;
@@ -135,30 +140,33 @@ CPRTreeNode* MakeCPRTreeNode(CPRTreeNodeType tp, char* text,char*text2,char*text
     return k;
 }
 
-
 void FillCPRTreeNode(CPRTreeNode* k,CPRTreeNodeType tp, char* text,char*text2,char*text3,char*text4)
 {
     if (text!=NULL)
     {
-        k->text=new char[strlen(text)];
+        k->text=new char[strlen(text)+1];
         strcpy(k->text,text);
+        k->text[strlen(text)]=0;
     }
     k->tntType=tp;
     if (text2!=NULL)
     {
         int i=strlen(text2);
-        k->text2=new char[i];
+        k->text2=new char[i+1];
         strcpy(k->text2,text2);
+        k->text2[i]=0;
     }
     if (text3!=NULL)
     {
-        k->text3=new char[strlen(text3)];
+        k->text3=new char[strlen(text3)+1];
         strcpy(k->text3,text3);
+        k->text3[strlen(text3)]=0;
     }
     if (text4!=NULL)
     {
         k->text4=new char[strlen(text4)];
         strcpy(k->text4,text4);
+        k->text4[strlen(text4)]=0;
     }
 }
 
@@ -182,21 +190,58 @@ debugmode=false;
 	CPRApplication App;
 	::AppV=&App;
 	argnum=1;
+	pi_a=false;
+	po_a=false;
     if (argc<=1)
     {
         std::cout<<"Usage: cprompt \"/path/to/your/script.c\"\n";
         return 0;
     }
-	if (strcmp(argv[1],"--dbg")==0)
-	{
-	    debugmode=true;
-	    argnum++;
-        if (argc<=2)
+    while (true)
+    {
+        if (strcmp(argv[argnum],"--dbg")==0)
         {
-            std::cout<<"Usage: cprompt \"/path/to/your/script.c\"\n";
-            return 0;
+            debugmode=true;
+            argnum++;
+            if (argc<=argnum)
+            {
+                std::cout<<"Usage: cprompt --dbg \"/path/to/your/script.c\"\n";
+                return 0;
+            }
+        }else
+
+        if (strcmp(argv[argnum],"--pi")==0)
+        {
+            pi_a=true;
+            argnum++;
+            if (argc<=argnum)
+            {
+                std::cout<<"Usage: cprompt --pi \"/path/to/named/pipe\" \"/path/to/your/script.c\"\n";
+                return 0;
+            }
+            freopen(argv[argnum],"r",stdin);
+            argnum++;
+        }else
+
+        if (strcmp(argv[argnum],"--po")==0)
+        {
+            po_a=true;
+            argnum++;
+            if (argc<=argnum)
+            {
+                std::cout<<"Usage: cprompt --po \"/path/to/named/pipe\" \"/path/to/your/script.c\"\n";
+                return 0;
+            }
+            //po.open(argv[argnum]);
+            //std::cout.rdbuf(po.rdbuf());
+            freopen(argv[argnum],"w",stdout);
+            argnum++;
+        }else
+        {
+            break;
         }
-	}
+    }
+
     if (!FileExists(argv[argnum]))
     {
         std::cout<<"(FATAL ERROR) File not found\n";
@@ -230,7 +275,6 @@ debugmode=false;
             {
                 std::string tms;
                 tms=p->data.sCurrText;
-                std::cout<<tms<<"\n";
                 replace(tms,"\\n","\n");
                 replace(tms,"\\t","\t");
                 replace(tms,"\\v","\v");
@@ -247,7 +291,7 @@ debugmode=false;
                 strcpy(tmsp,tms.c_str());
                 tmsp[tms.size()]=0;
                 p->data.sCurrText=tmsp;
-                std::cout<<tms<<"\n";
+                if (debugmode) std::cout<<tms<<"\n";
             }
         }
 

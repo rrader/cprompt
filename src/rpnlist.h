@@ -16,7 +16,8 @@ enum RPNStackElementType {
             rsetNum=0,
             rsetStr=1,
             rsetAct=2,
-            rsetString=3
+            rsetString=3,
+            rsetFunctionMarker=4
             };
 
 struct RPNStackElement

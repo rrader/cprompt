@@ -24,6 +24,13 @@ struct DTVar
             k->dtet=dtetNative;
             return k;
         };
+        static DTVar* CreatePointerDTVarFromDTMain(DTMain* D)
+        {
+            DTVar* k=new DTVar;
+            k->T=D;
+            k->dtet=dtetPointer;
+            return k;
+        };
         static DTVar* CreateMemory(int size)
         {
             DTVar* k=new DTVar;
@@ -44,7 +51,7 @@ class DTMain
         DTMain(char* name);
         void SetIdent(char* name);
         char* DTFullName();
-        void assign(DTMain* u);
+        void assign(DTMain* u, bool Copy=false);
 
         virtual void dtmemalloc()=0;
         virtual void dtmemfree()=0;
@@ -82,6 +89,23 @@ class DTUInt : public DTIntegerTypes
         int sizeoftype(){return sizeof(int);};
         int64_t toint(){ return *((unsigned int*)pData); };
         void setint(int64_t i){ dtmemalloc(); (*((unsigned int*)pData))=i; };
+    private:
+};
+
+class DTMarker : public DTMain
+{
+    public:
+        DTMarker(char* name);
+
+        void dtmemalloc();
+        void dtmemfree();
+        char* DTName();
+        char* tostring();
+        int sizeoftype(){return 0;};
+        int64_t toint(){ return 0;};
+        void setint(int64_t i){  };
+        int typeoftype() { return 5; };
+        double tofloat(){ return toint(); };
     private:
 };
 
@@ -149,7 +173,7 @@ class DTChar : public DTIntegerTypes
     private:
 };
 
-class DTPtr : public DTMain
+class DTPtr : public DTIntegerTypes
 {
    public:
 
@@ -163,7 +187,8 @@ class DTPtr : public DTMain
         char* tostring();
         int typeoftype() { return 3; };
         int sizeoftype(){return sizeof(void*);};
-    private:
+        void setint(int64_t i){ dtmemalloc(); pData=(void*)i; };
+        int64_t toint(){ return (int)pData;};
         char* _tp;
 };
 
@@ -185,7 +210,7 @@ class DTArray : public DTMain
         char* type_one;
         char* tostring();
         int typeoftype() { return 4; };
-        int sizeoftype(){return size_one*count;};
+        int sizeoftype(){return sizeof(void*);};
     private:
 };
 

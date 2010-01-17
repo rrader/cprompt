@@ -28,6 +28,7 @@ enum CPRTreeNodeType
     };
 
 static char* arTypenames[]={"char","int","float","double","void","long","short","super","signed","unsigned","*","&"};
+static char* arTypenamesExclude[]={"*","&"};
 
 struct CPRTextDataType
 {
@@ -51,26 +52,30 @@ struct CPRTreeNode
         tntType=_s.tntType;
         if (_s.text!=NULL)
         {
-            text=new char[strlen(_s.text)];
+            text=new char[strlen(_s.text)+1];
             strcpy(text,_s.text);
+            text[strlen(_s.text)]=0;
         }
 
         if (_s.text2!=NULL)
         {
-            text2=new char[strlen(_s.text2)];
+            text2=new char[strlen(_s.text2)+1];
             strcpy(text2,_s.text2);
+            text2[strlen(_s.text2)]=0;
         }
 
         if (_s.text3!=NULL)
         {
-            text3=new char[strlen(_s.text3)];
+            text3=new char[strlen(_s.text3)+1];
             strcpy(text3,_s.text3);
+            text3[strlen(_s.text3)]=0;
         }
 
         if (_s.text4!=NULL)
         {
-            text4=new char[strlen(_s.text4)];
+            text4=new char[strlen(_s.text4)+1];
             strcpy(text4,_s.text4);
+            text4[strlen(_s.text4)]=0;
         }
         return *this;
     }

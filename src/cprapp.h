@@ -42,6 +42,7 @@ public:
     {
         aTree=new ag::tree<CPRTreeNode*>(MakeCPRTreeNode(tntNone,"APPLICATION"));
         aTypenames=new ag::stringlist(arTypenames,sizeof(arTypenames)/sizeof(void*));
+        aTypenamesExclude=new ag::stringlist(arTypenamesExclude,sizeof(arTypenamesExclude)/sizeof(void*));
     };
     ~CPRApplication(){};
 
@@ -82,9 +83,14 @@ public:
         return k;
     };
 
+// Debug
+
+    void OutVarList(ag::list<DTVar*>* Vars);
+
     ag::list<CPRTokenInfo> aTokens;
     ag::list<DTVar*> aVars;
     ag::stringlist* aTypenames;
+    ag::stringlist* aTypenamesExclude;
     ag::tree<CPRTreeNode*>* aTree;
     ag::stack<DTVar*> aStack;
     ag::list<CPRDefine> sDefines;
@@ -101,6 +107,12 @@ private:
     void PreprocessIncludes     (char**saveto=NULL, char* sText=NULL, char* workdir=NULL);
     void* CreateBufferFromStackStdCall(ag::list<CPRTextDataType>* params,int& WordCount);
 };
+
+struct CPRRestoreVarName
+        {
+            ag::list<DTVar*>::member mem;
+            char* name;
+        };
 
 ag::tree<CPRTreeNode*>* FindText1InTree(ag::tree<CPRTreeNode*>* T,char* sText,CPRTreeNodeType tnt=tntNone);
 ag::tree<CPRTreeNode*>* FindText2InTree(ag::tree<CPRTreeNode*>* T,char* sText,CPRTreeNodeType tnt=tntNone);

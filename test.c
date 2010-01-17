@@ -1,7 +1,19 @@
-#include <math.h>
-outside cdecl: int printf(char*s,double f,int x);
-int main(int argv,char* argc[])
+outside cdecl: int printf(char*s, ...);
+outside cdecl: int scanf(char*s, ...);
+outside cdecl: double floor(double x);
+outside cdecl: int sprintf (char* str, char* format, ... );
+outside cdecl: void* malloc (int size);
+outside cdecl: int strlen(char* s);
+
+double round(double value )
 {
-    int l=round(7.2);
-    printf("round(%f)w = %d \n",7.2,l);
+  return floor( value + 0.5 );
 }
+
+int main(int argc,char* argv[])
+{
+    float x=1;
+    int l=round(x);
+    printf("%f = %d;\n",x,l);
+}
+

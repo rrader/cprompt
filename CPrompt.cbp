@@ -11,7 +11,7 @@
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="--dbg /home/roma/projects/cprompt/trunk/test.c " />
+				<Option parameters="--dbg ~/projects/cprompt/trunk/test.c param1 param2" />
 				<Compiler>
 					<Add option="-g" />
 				</Compiler>

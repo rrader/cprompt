@@ -16,8 +16,9 @@ extern int argnum;
 void CPRApplication::SetText(char* sText)
 {
     iSize=strlen(sText);
-    sPText=new char[iSize];
+    sPText=new char[iSize+1];
     strcpy(sPText,sText);
+    sPText[iSize]=0;
 }
 
 void CPRApplication::SetFile(char* sName)
@@ -34,11 +35,13 @@ void CPRApplication::SetFile(char* sName)
     file.close();
 
     int tmp=strlen(sName);
-    sFilePath=new char[tmp];
+    sFilePath=new char[tmp+1];
     strcpy(sFilePath,sName);
+    sFilePath[tmp]=0;
 
-    sWorkDir=new char[strlen(sName)];
+    sWorkDir=new char[strlen(sName)+1];
     strcpy(sWorkDir,sName);
+    sWorkDir[strlen(sName)]=0;
     while((sWorkDir[strlen(sWorkDir)-1]!='/')&&(strlen(sWorkDir)>0)) sWorkDir[strlen(sWorkDir)-1]=0;
 }
 
@@ -100,8 +103,8 @@ DTVar* CPRApplication::FindVariable(char* sName, ag::list<DTVar*>* local)
             {
                 return i->data;
                 break;
-            };
-        };
+            }
+        }
     }
     for(ag::list<DTVar*>::member i=aVars.tail;i!=NULL;i=i->prev)
     {
@@ -110,10 +113,10 @@ DTVar* CPRApplication::FindVariable(char* sName, ag::list<DTVar*>* local)
         {
             return i->data;
             break;
-        };
-    };
+        }
+    }
     return NULL;
-};
+}
 
 char* CPRApplication::ReadTypename(ag::list<CPRTokenInfo>::member& p)
 {
@@ -152,7 +155,7 @@ char* CPRApplication::ReadTypename(ag::list<CPRTokenInfo>::member& p)
 
 bool CPRApplication::IsTypename(ag::list<CPRTokenInfo>::member p)
 {
-    return (aTypenames->findstr(p->data.sCurrText))!=NULL;
+    return (((aTypenames->findstr(p->data.sCurrText))!=NULL)&&((aTypenamesExclude->findstr(p->data.sCurrText))==NULL));
 }
 
 char* CPRApplication::ReadToSymbol(ag::list<CPRTokenInfo>::member& p,char _symb,bool makespaces)
@@ -966,7 +969,6 @@ void CPRApplication::BuildTree(char* workpath, ag::list<CPRTokenInfo>* pTok,char
                     tp=new ag::tree<CPRTreeNode*>(currparent,C);
                 }else
                     tp=new ag::tree<CPRTreeNode*>(currparent,MakeCPRTreeNode(tntDeclareVar,str1,str2,NULL));
-                q=new int; //не трогать!
                 state=0;
             break;
 
@@ -989,11 +991,22 @@ if (debugmode) aTree->drawtree_con(&std::cout);
                     {
                         if (!IsTypename(p))
                         {
-                            if (debugmode) std::cout<<"(s4) ERROR "<<p->data.sCurrText<<" is not typename\n";
-                            state=0;
-                            break;
+                            if ((strcmp(p->data.sCurrText,".")==0)&&(strcmp(p->next->data.sCurrText,".")==0)&&(strcmp(p->next->next->data.sCurrText,".")==0))
+                            {
+                                lm=((ag::list<CPRTextDataType>*)(n->r1))->add_tail(*dt);
+                                lm->data.str1="...";
+                                lm->data.str2="...";
+                                lm->data.str3=NULL;
+                                p=p->next->next->next;
+                                continue;
+                            } else
+                            {
+                                if (debugmode) std::cout<<"(s4) ERROR "<<p->data.sCurrText<<" is not typename\n";
+                                state=0;
+                                break;
+                            }
                         }
-                        lm=((ag::list<CPRTextDataType>*)(n->r1))->add_tail(*dt); // не помню зачем это
+                        lm=((ag::list<CPRTextDataType>*)(n->r1))->add_tail(*dt);
                         str1=ReadTypename(p);
                         lm->data.str1=str1;
                         p=p->next;
@@ -1141,11 +1154,23 @@ void CPRApplication::ExecOutside(ag::tree<CPRTreeNode*>* T)
     }
 }
 
+void CPRApplication::OutVarList(ag::list<DTVar*>* Vars)
+{
+    int b=0;
+    if (debugmode) std::cout<<"Vars.count="<<Vars->count()<<"\n";
+    for (ag::list<DTVar*>::member m=Vars->head;m!=NULL;m=m->next)
+    {
+        b++;
+        if (debugmode) std::cout<<"Local["<<b<<"]="<<(((DTMain*)(((DTVar*)m->data)->T))->sIdent)<<"\n";
+    }
+}
+
 void CPRApplication::ExecTree(ag::tree<CPRTreeNode*>* T,ag::list<DTVar*>* ExternalVars, char* retname)
 {
     try
     {
         ag::list<DTVar*> Local;
+        //ag::list<CPRRestoreVarName*> ToRestore;
         if (ExternalVars!=NULL)
         {
             DTVar* q;
@@ -1156,25 +1181,34 @@ void CPRApplication::ExecTree(ag::tree<CPRTreeNode*>* T,ag::list<DTVar*>* Extern
             {
                 Local.add_tail(m->data);
             }
-            int b=0;
-            for (ag::list<DTVar*>::member m=Local.head;m!=NULL;m=m->next)
-            {
-                b++;
-                if (debugmode) std::cout<<"Local["<<b<<"]="<<(((DTMain*)(((DTVar*)m->data)->T))->sIdent)<<"\n";
-            };
         }
+        OutVarList(&Local);
         bool was_ret=false;
         char* sq_s;
         if (T->data->tntType==tntFunction)
         {//if it's function, load arguments from stack to Local. search from the end
             int c=((ag::list<CPRTextDataType>*)(T->data->r1))->count();
+            int c_k=((DTMain*)(aStack.pop()->T))->toint();
+            if (c!=c_k) if (debugmode) std::cout<<"(WARNING) Params count is not equally to declaration\n";
             ag::list<CPRTextDataType>::member pm=((ag::list<CPRTextDataType>*)(T->data->r1))->head;
+            OutVarList(&Local);
+            ag::list<DTVar*>::member m;
             for (int i=0;i<c;i++)
             {
-                ag::list<DTVar*>::member m=Local.add_tail(aStack.pop());// названия
+                OutVarList(&Local);
+                m=Local.add_tail(aStack.pop());// названия
+                OutVarList(&Local);
+                //CPRRestoreVarName* rvn=new CPRRestoreVarName;
+                //rvn->mem=m;
+                //rvn->name=new char[strlen(((DTMain*)(m->data->T))->sIdent)+1];
+                //strcpy(rvn->name,((DTMain*)(m->data->T))->sIdent);
+                //rvn->name[strlen(rvn->name)]=0;
+                //ToRestore.add_tail(rvn);
                 ((DTMain*)(m->data->T))->sIdent=pm->data.str2;
+                OutVarList(&Local);
                 pm=pm->next;
             }
+            OutVarList(&Local);
             std::string sq=T->data->text2;
             sq+="_result_";
 //            std::ostringstream si;
@@ -1189,7 +1223,7 @@ void CPRApplication::ExecTree(ag::tree<CPRTreeNode*>* T,ag::list<DTVar*>* Extern
         {
             sq_s=retname;
         }
-
+        OutVarList(&Local);
         ag::listmember< ag::tree<CPRTreeNode*>* >* p=(*T).childs.head;
         while (p!=NULL)
         {
@@ -1211,8 +1245,24 @@ void CPRApplication::ExecTree(ag::tree<CPRTreeNode*>* T,ag::list<DTVar*>* Extern
                             rpnstr+="=";*/
                             rpnstr+=(p->data->data->text3)?p->data->data->text3:"";
                             DTVar* dtv=ParseDataTypeString(p->data->data->text,p->data->data->text2,//p->data->data->text3);
-                                   MakePostfixFromInfix((char*)rpnstr.c_str()), &Local);
+                                   NULL, NULL);
                             Local.add_tail(dtv);
+                            rpnlist* rls;
+                            rls=MakePostfixFromInfix((char*)rpnstr.c_str());
+                            RPNStackElement* rlsel=new RPNStackElement;
+                            rlsel->d=p->data->data->text2;
+                            rlsel->tp=rsetStr;
+                            rls->add_head(rlsel);
+                            rlsel=new RPNStackElement;
+                            rlsel->d=new char[3];
+                            ((char*)rlsel->d)[0]='=';
+                            ((char*)rlsel->d)[1]=' ';
+                            ((char*)rlsel->d)[2]=0;
+                            rlsel->tp=rsetAct;
+                            rls->add_tail(rlsel);
+                            OutVarList(&Local);
+                            CalculateRPN(rls,&Local);
+                            OutVarList(&Local);
                             if (debugmode) std::cout<<"variable was added to Local\n";
                             if (debugmode) std::cout<<((DTMain*)(dtv->T))->DTFullName()<<"\n";
                         }catch(char* k)
@@ -1224,6 +1274,7 @@ void CPRApplication::ExecTree(ag::tree<CPRTreeNode*>* T,ag::list<DTVar*>* Extern
                             if (debugmode) std::cout<<"(Error): "<<k<<"\n";
                         };
                         //((DTMain*)(dtv->T))->;
+                        OutVarList(&Local);
                         break;
                     }
                 case tntDeclareFunc:
@@ -1381,6 +1432,10 @@ void CPRApplication::ExecTree(ag::tree<CPRTreeNode*>* T,ag::list<DTVar*>* Extern
         };
         if (T->data->tntType==tntFunction)
             aStack.push(FindVariable(sq_s,&Local));
+//        for (ag::list<CPRRestoreVarName*>::member m=ToRestore.head;m!=NULL;m=m->next)
+//        {
+//            ((DTMain*)(m->data->mem->data->T))->sIdent=m->data->name;
+//        }
     }catch(char* k)
     {
         if (debugmode) std::cout<<"(Error): "<<k<<"\n";
@@ -1388,7 +1443,7 @@ void CPRApplication::ExecTree(ag::tree<CPRTreeNode*>* T,ag::list<DTVar*>* Extern
     catch(const char* k)
     {
         if (debugmode) std::cout<<"(Error): "<<k<<"\n";
-    };
+    }
 }
 
 void CPRApplication::ExecMainTree(ag::tree<CPRTreeNode*>* T)
@@ -1402,7 +1457,7 @@ void CPRApplication::ExecMainTree(ag::tree<CPRTreeNode*>* T)
 	}
 	if (debugmode) mainf->drawtree_con(&std::cout);
 	if (debugmode) std::cout<<"function parameter argc="<<argc-1<<"\n";
-    DTInt* L=new DTInt("argc",argc-1);
+    DTInt* L=new DTInt("argc",argc-argnum);
 
     DTArray* cpargv=new DTArray("argv",sizeof(char*),argc-argnum,"char*");
     DTVar* m=DTVar::CreateNativeDTVarFromDTMain(cpargv);
@@ -1423,6 +1478,9 @@ void CPRApplication::ExecMainTree(ag::tree<CPRTreeNode*>* T)
 	for(int i=0;i<cpargv->count;i++)
         if (debugmode) std::cout<<"cpargv["<<i<<"]:: "<<((DTMain*)(((DTVar*)(cpargv->GetElement(i)))->T))->tostring()<<"\n";
     if (debugmode) std::cout<<"DTArray.tostring(): \""<<cpargv->tostring()<<"\"\n";
+
+    L=new DTInt(NULL,2);
+    aStack.push(DTVar::CreateNativeDTVarFromDTMain(L));
 	//test
 /*	int k=*((unsigned int*)(((DTUInt*)(((DTVar*)(aStack.pop()))->T))->pData));
 	DTArray& a;

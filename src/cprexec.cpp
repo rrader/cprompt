@@ -2,7 +2,7 @@
 #include "cprexec.h"
 
 
-// thanks for ivanrt (habrahabr.ru)
+// спасибо ivanrt (habrahabr.ru) за идею
 extern "C" {
     int CallCDecl(void*f, int sz, void*args);
 }
@@ -19,43 +19,85 @@ CallCDeclPointerFunc CallCDecl_Pointer = (CallCDeclPointerFunc) CallCDecl;
 
 void* CPRApplication::CreateBufferFromStackStdCall(ag::list<CPRTextDataType>* params,int& WordCount)
 {
-    int count=params->count();
+    int count=((DTMain*)(aStack.pop()->T))->toint();//params->count();
+    ag::stack<DTVar*> tmpStack;
     ag::stack<DTVar*> lStack;
+    ag::stack<DTVar*> lStack2;
+    DTVar* x;
+    DTMain* y;
     for(int i=0;i<count;i++)
     {
-        lStack.push(aStack.pop());
+        x=aStack.pop();
+        lStack.push(x);
+        lStack2.push(x);
+        if (i>=params->count())
+        {
+            CPRTextDataType td;
+            td.str1="...";
+            td.str2="...";
+            td.str3="...";
+            params->add_tail(td);
+        }
     }
     ag::list<CPRTextDataType>::member pm;
     DTVar*v,*dv;
     int size=0;
-    pm=params->head;
+    int point3c=0;
+    pm=params->tail;
+    bool checktype=true;
     for(int i=0;i<count;i++)
     {
-        dv=ParseDataTypeString(pm->data.str1,pm->data.str2,NULL,NULL);
-        if (((DTMain*)(dv->T))->sizeoftype()<=4)
-            size+=4;
-        if (((DTMain*)(dv->T))->sizeoftype()>4)
+        if (checktype) if (strcmp(pm->data.str1,"...")==0) checktype=false;
+        if (checktype)
         {
-            if ((((DTMain*)(dv->T))->sizeoftype())%4==0)
+            lStack2.pop();
+            dv=ParseDataTypeString(pm->data.str1,pm->data.str2,NULL,NULL);
+            y=(DTMain*)(dv->T);
+        }else
+        {
+            x=lStack2.pop();
+            y=(DTMain*)(x->T);
+            if (strcmp(y->DTName(),"float")==0)
+              x=ParseDataTypeString("double",pm->data.str2,NULL,NULL);
+            y=(DTMain*)(x->T);
+            point3c++;
+        }
+        if (y->sizeoftype()<=4)
+            size+=4;
+        if (y->sizeoftype()>4)
+        {
+            if ((y->sizeoftype())%4==0)
             {
-                size+=((DTMain*)(dv->T))->sizeoftype();
+                size+=y->sizeoftype();
             }else
             {
-                size+=(((DTMain*)(dv->T))->sizeoftype()/4)*4+4;
+                size+=(y->sizeoftype()/4)*4+4;
             }
         }
-        delete (DTMain*)(dv->T);
-        pm=pm->next;
+        if (checktype)
+        {
+            delete (DTMain*)(dv->T);
+        }
+        pm=pm->prev;
     }
 
     void* buf=new char[size];
     WordCount=size/4;
     int offset=0;
     pm=params->tail;
+    checktype=true;
     for(int i=0;i<count;i++)
     {
+        checktype=true;
+        if (strcmp(pm->data.str1,"...")==0) checktype=false;
         v=lStack.pop();
-        dv=ParseDataTypeString(pm->data.str1,pm->data.str2,NULL,NULL);
+        if (checktype)
+        {
+            dv=ParseDataTypeString(pm->data.str1,pm->data.str2,NULL,NULL);
+        }else
+        {
+            dv=v;
+        }
         switch(((DTMain*)(dv->T))->typeoftype())
         {
             /*case 4: {
@@ -65,40 +107,67 @@ void* CPRApplication::CreateBufferFromStackStdCall(ag::list<CPRTextDataType>* pa
                 memcpy(buf+offset,((DTMain*)(dv->T))->pData,sizeof(void*));
                 break;
             }*/
-            case 3: { //pointer, 4 bytes
-                if ((((DTMain*)(dv->T))->typeoftype()!=3)&&(((DTMain*)(dv->T))->typeoftype()!=4))
+            case 4: { //array->pointer 4 bytes
+                if ((((DTMain*)(v->T))->typeoftype()!=3)&&(((DTMain*)(v->T))->typeoftype()!=4))
                     throw "Uncompatible types!";
-                CalculateAssignation((DTMain*)(dv->T),(DTMain*)(v->T),NULL);
+                DTVar* lnns = ParseDataTypeString(((DTArray*)(dv->T))->type_one,NULL,NULL,NULL);
+                if(lnns->dtet==dtetNative)
+                {
+                    (*(void**)((char*)buf+offset))=((DTMain*)(dv->T))->pData;
+                }else
+                if(lnns->dtet==dtetPointer)
+                {
+                    (*(void**)((char*)buf+offset))=*(void**)(((DTMain*)(dv->T))->pData);
+                }
+                break;
+            }
+            case 3: { //pointer, 4 bytes
+                if ((((DTMain*)(v->T))->typeoftype()!=3)&&(((DTMain*)(v->T))->typeoftype()!=4))
+                    throw "Uncompatible types!";
+                /*if ()
+                {
+                    *(void**)(buf+offset)=new char[((DTArray*)(dv->T))->sizeoftype()+1];
+                    memset(*(void**)(buf+offset),0,((DTArray*)(dv->T))->sizeoftype()+1);
+                    memcpy(*(void**)(buf+offset),((DTArray*)(dv->T))->pData,((DTArray*)(dv->T))->sizeoftype());
+                }else*/
+                if (checktype) CalculateAssignation((DTMain*)(dv->T),(DTMain*)(v->T),NULL);
                 //memcpy(buf+offset,,sizeof(void*));
-                *(void**)(buf+offset)=((DTMain*)(dv->T))->pData;
+                *(void**)((char*)buf+offset)=((DTMain*)(dv->T))->pData;
                 break;
             }
             case 1: { //Integer types
-                    CalculateAssignation((DTMain*)(dv->T),(DTMain*)(v->T),NULL);
+                    if (checktype) CalculateAssignation((DTMain*)(dv->T),(DTMain*)(v->T),NULL);
                     if ((strcmp(((DTMain*)(dv->T))->DTName(),"signed int")==0)||(strcmp(((DTMain*)(dv->T))->DTName(),"unsigned int")==0))
                     {
-                        *(int*)(buf+offset)=*((int*)(((DTMain*)(dv->T))->pData));
+                        *(int*)((char*)buf+offset)=*((int*)(((DTMain*)(dv->T))->pData));
                     }
                     break;
                 }
             case 2: { //Float types
-                    CalculateAssignation((DTMain*)(dv->T),(DTMain*)(v->T),NULL);
-                    if (strcmp(((DTMain*)(dv->T))->DTName(),"double")==0)
+                    if (checktype) CalculateAssignation((DTMain*)(dv->T),(DTMain*)(v->T),NULL);
+                    if (((strcmp(((DTMain*)(dv->T))->DTName(),"double")==0)||(!checktype)))
                     {
+                        if (!checktype)
+                        {
+                            dv=ParseDataTypeString("double",pm->data.str2,NULL,NULL);
+                            CalculateAssignation((DTMain*)(dv->T),(DTMain*)(v->T),NULL);
+                        }
                         double x=*((double*)(((DTMain*)(dv->T))->pData));
-                        memcpy(buf+offset+4,&x,4);
-                        memcpy(buf+offset,(char*)&x+4,4);
-                    }
-                    if (strcmp(((DTMain*)(dv->T))->DTName(),"float")==0)
+                        memcpy((char*)buf+offset+4,&x,4);
+                        memcpy((char*)buf+offset,(char*)&x+4,4);
+                    }else
+                    if ((strcmp(((DTMain*)(dv->T))->DTName(),"float")==0))//||(checktype))
                     {
-                        float x=*((float*)(((DTMain*)(dv->T))->pData));
-                        memcpy(buf+offset,&x,sizeof(float));
+                        //float* x=new float;
+                        *(float*)((char*)buf+offset)=*((float*)(((DTMain*)(dv->T))->pData));
+                        //memcpy(buf+offset,x,sizeof(float));
                     }
                     break;
                 }
         }
         offset+=((DTMain*)(dv->T))->sizeoftype();
-        pm=pm->prev;
+        if (pm->prev!=NULL)
+            pm=pm->prev;
     }
     return buf;
 }

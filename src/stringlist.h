@@ -19,8 +19,9 @@ class stringlist : public ag::list<char*>
 
         void addstr(char* s)
         {
-            char* c=new char[strlen(s)];
+            char* c=new char[strlen(s)+1];
             strcpy(c,s);
+            c[strlen(s)]=0;
             add_tail(c);
         };
         member findstr(char* s)

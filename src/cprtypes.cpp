@@ -16,8 +16,9 @@ DTMain::DTMain()
 DTMain::DTMain(char* name)
 {
 	if (debugmode) std::cout<<"DTMain("<<name<<")\n";
-	sIdent=new char[strlen(name)];
+	sIdent=new char[strlen(name)+1];
 	strcpy(sIdent,name);
+	sIdent[strlen(name)]=0;
 	pData=NULL;
 }
 
@@ -25,12 +26,14 @@ void DTMain::SetIdent(char* name)
 {
     if (debugmode) std::cout<<"DTMain: SetIdent\n";
 	if (sIdent!=NULL) delete[] sIdent;
-	sIdent=new char[strlen(name)];
+	sIdent=new char[strlen(name)+1];
+	sIdent[strlen(name)]=0;
 	strcpy(sIdent,name);
 }
 
 char* DTMain::DTFullName()
 {
+
 	std::string a;
 	char* n=DTName();
 	a+=n;
@@ -60,10 +63,15 @@ char* DTMain::DTFullName()
 	return ar;
 }
 
-void DTMain::assign(DTMain* u)
+void DTMain::assign(DTMain* u, bool Copy)
 {
-    pData=u->pData;
-    size=u->size;
+    if (Copy)
+        memcpy(pData,u->pData,sizeoftype());
+    else
+    {
+        size=u->size;
+        pData=u->pData;
+    }
 }
 
 //class DTInt
@@ -74,10 +82,12 @@ DTInt::DTInt(char* name) //without memalloc!
 	pData=NULL;
 	if (name!=NULL)
 	{
-        sIdent=new char[strlen(name)];
+        sIdent=new char[strlen(name)+1];
         strcpy(sIdent,name);
+        sIdent[strlen(name)]=0;
 	}
 	size=0;
+	dtmemalloc();
 }
 
 DTInt::DTInt(char*name,int d)
@@ -87,8 +97,9 @@ DTInt::DTInt(char*name,int d)
 	*((int*)pData)=d;
 	if (name!=NULL)
 	{
-        sIdent=new char[strlen(name)];
+        sIdent=new char[strlen(name)+1];
         strcpy(sIdent,name);
+        sIdent[strlen(name)]=0;
 	}
 }
 
@@ -120,12 +131,60 @@ char* DTInt::tostring()
 {
     if (debugmode) std::cout<<"DTInt: tostring\n";
     char* tmp=new char[100];
-    sprintf(tmp,"%d",*(int*)pData);
-	char* rs=new char[strlen(tmp)];
+    if (pData!=NULL)
+        sprintf(tmp,"%d",*(int*)pData);
+    else
+        tmp="NULL";
+	char* rs=new char[strlen(tmp)+1];
 	strcpy(rs,tmp);
-	delete[] tmp;
+	rs[strlen(tmp)]=0;
+//	delete[] tmp;
 	return rs;
 }
+
+//class DTMarker
+
+DTMarker::DTMarker(char* name) //without memalloc!
+{
+	if (debugmode) std::cout<<"DTMarker("<<((name!=NULL)?name:"NULL")<<")\n";
+	pData=NULL;
+	if (name!=NULL)
+	{
+        sIdent=new char[strlen(name)+1];
+        strcpy(sIdent,name);
+        sIdent[strlen(name)]=0;
+	}
+	size=0;
+}
+
+void DTMarker::dtmemalloc()
+{
+    if (debugmode) std::cout<<"DTMarker: dtmemalloc\n";
+}
+
+void DTMarker::dtmemfree()
+{
+    if (debugmode) std::cout<<"DTMarker: dtmemfree\n";
+}
+
+char* DTMarker::DTName()
+{
+    if (debugmode) std::cout<<"DTMarker: DTName\n";
+	char* rs=new char[strlen("marker")+1];
+	strcpy(rs,"marker");
+	rs[strlen("marker")]=0;
+	return rs;
+}
+
+char* DTMarker::tostring()
+{
+    if (debugmode) std::cout<<"DTInt: tostring\n";
+	char* rs=new char[strlen("marker")+1];
+	strcpy(rs,"marker");
+	rs[strlen("marker")]=0;
+	return rs;
+}
+
 
 //class DTUInt
 
@@ -136,9 +195,11 @@ DTUInt::DTUInt(char* name) //without memalloc!
 	size=0;
 	if (name!=NULL)
 	{
-        sIdent=new char[strlen(name)];
+        sIdent=new char[strlen(name)+1];
         strcpy(sIdent,name);
+        sIdent[strlen(name)]=0;
 	}
+    dtmemalloc();
 }
 
 DTUInt::DTUInt(char*name,unsigned int d)
@@ -146,8 +207,9 @@ DTUInt::DTUInt(char*name,unsigned int d)
 	if (debugmode) std::cout<<"DTUInt("<<((name!=NULL)?name:"NULL")<<", "<<d<<")\n";
 	dtmemalloc();
 	*((unsigned int*)pData)=d;
-	sIdent=new char[strlen(name)];
+	sIdent=new char[strlen(name)+1];
 	strcpy(sIdent,name);
+	sIdent[strlen(name)]=0;
 }
 
 void DTUInt::dtmemalloc()
@@ -182,7 +244,10 @@ char* DTUInt::tostring()
 {
     if (debugmode) std::cout<<"DTUInt::tostring()\n";
     char* tmp=new char[100];
-    sprintf(tmp,"%u",(*(int*)pData));
+    if (pData!=NULL)
+        sprintf(tmp,"%u",(*(int*)pData));
+    else
+        tmp="NULL";
 	char* rs=new char[strlen(tmp)+1];
 	strcpy(rs,tmp);
 	rs[strlen(tmp)]=0;
@@ -197,10 +262,12 @@ DTDouble::DTDouble(char* name) //without memalloc!
 	pData=NULL;
 	if (name!=NULL)
 	{
-        sIdent=new char[strlen(name)];
+        sIdent=new char[strlen(name)+1];
         strcpy(sIdent,name);
+        sIdent[strlen(name)]=0;
 	}
 	size=0;
+    dtmemalloc();
 }
 
 DTDouble::DTDouble(char*name,double d)
@@ -210,8 +277,9 @@ DTDouble::DTDouble(char*name,double d)
 	*((double*)pData)=d;
 	if (name!=NULL)
 	{
-        sIdent=new char[strlen(name)];
+        sIdent=new char[strlen(name)+1];
         strcpy(sIdent,name);
+        sIdent[strlen(name)]=0;
 	}
 }
 
@@ -243,10 +311,13 @@ char* DTDouble::tostring()
 {
     if (debugmode) std::cout<<"DTDouble::tostring()\n";
     char* tmp=new char[100];
-    sprintf(tmp,"%f",*(double*)pData);
-	char* rs=new char[strlen(tmp)];
+    if (pData!=NULL)
+        sprintf(tmp,"%f",*(double*)pData);
+    else
+        tmp="NULL";
+	char* rs=new char[strlen(tmp)+1];
 	strcpy(rs,tmp);
-	delete[] tmp;
+	rs[strlen(tmp)]=0;
 	return rs;
 }
 
@@ -258,10 +329,12 @@ DTFloat::DTFloat(char* name) //without memalloc!
 	pData=NULL;
 	if (name!=NULL)
 	{
-        sIdent=new char[strlen(name)];
+        sIdent=new char[strlen(name)+1];
         strcpy(sIdent,name);
+        sIdent[strlen(name)]=0;
 	}
 	size=0;
+    dtmemalloc();
 }
 
 DTFloat::DTFloat(char*name,float d)
@@ -271,8 +344,9 @@ DTFloat::DTFloat(char*name,float d)
 	*((float*)pData)=d;
 	if (name!=NULL)
 	{
-        sIdent=new char[strlen(name)];
+        sIdent=new char[strlen(name)+1];
         strcpy(sIdent,name);
+        sIdent[strlen(name)]=0;
 	}
 }
 
@@ -304,10 +378,13 @@ char* DTFloat::tostring()
 {
     if (debugmode) std::cout<<"DTFloat::tostring()\n";
     char* tmp=new char[100];
-    sprintf(tmp,"%f",*(float*)pData);
-	char* rs=new char[strlen(tmp)];
+    if (pData!=NULL)
+        sprintf(tmp,"%f",*(float*)pData);
+    else
+        tmp="NULL";
+	char* rs=new char[strlen(tmp)+1];
 	strcpy(rs,tmp);
-	delete[] tmp;
+	rs[strlen(tmp)]=0;
 	return rs;
 }
 
@@ -320,9 +397,11 @@ DTChar::DTChar(char* name) //without memalloc!
 	size=0;
 	if (name!=NULL)
 	{
-        sIdent=new char[strlen(name)];
+        sIdent=new char[strlen(name)+1];
         strcpy(sIdent,name);
+        sIdent[strlen(name)]=0;
 	}
+    dtmemalloc();
 }
 
 DTChar::DTChar(char*name,char d)
@@ -330,8 +409,9 @@ DTChar::DTChar(char*name,char d)
 	if (debugmode) std::cout<<"DTChar("<<((name!=NULL)?name:"NULL")<<", "<<d<<")\n";
 	dtmemalloc();
 	*((char*)pData)=d;
-	sIdent=new char[strlen(name)];
+	sIdent=new char[strlen(name)+1];
 	strcpy(sIdent,name);
+	sIdent[strlen(name)]=0;
 }
 
 void DTChar::dtmemalloc()
@@ -362,8 +442,13 @@ char* DTChar::tostring()
 {
     if (debugmode) std::cout<<"DTChar::tostring()\n";
 	char* rs=new char[2];
-	rs[0]=*((char*)pData);
-	rs[1]=0;
+	if (pData!=NULL)
+	{
+        rs[0]=*((char*)pData);
+        rs[1]=0;
+	}
+    else
+        rs="NULL";
 	return rs;
 }
 
@@ -371,14 +456,16 @@ char* DTChar::tostring()
 
 DTPtr::DTPtr(char* name) //without memalloc!
 {
-	if (debugmode) std::cout<<"DTUInt("<<((name!=NULL)?name:"NULL")<<")\n";
+	if (debugmode) std::cout<<"DTPtr("<<((name!=NULL)?name:"NULL")<<")\n";
 	pData=NULL;
 	size=0;
 	if (name!=NULL)
 	{
-        sIdent=new char[strlen(name)];
+        sIdent=new char[strlen(name)+1];
         strcpy(sIdent,name);
+        sIdent[strlen(name)]=0;
 	}
+    dtmemalloc();
 }
 
 DTPtr::DTPtr(char*name,char* tp,void* p)
@@ -387,14 +474,16 @@ DTPtr::DTPtr(char*name,char* tp,void* p)
 	dtmemalloc();
 	if (tp!=NULL)
 	{
-        _tp=new char[strlen(tp)];
+        _tp=new char[strlen(tp)+1];
         strcpy(_tp,tp);
+        _tp[strlen(tp)]=0;
 	}
 	pData=p;
 	if (name!=NULL)
 	{
-        sIdent=new char[strlen(name)];
+        sIdent=new char[strlen(name)+1];
         strcpy(sIdent,name);
+        sIdent[strlen(name)]=0;
     }
 }
 
@@ -402,13 +491,15 @@ DTPtr::DTPtr(char*name,char* tp)
 {
 	if (debugmode) std::cout<<"DTPtr("<<((name!=NULL)?name:"NULL")<<", "<<((tp!=NULL)?tp:"NULL")<<")\n";
 	dtmemalloc();
-    _tp=new char[strlen(tp)];
+    _tp=new char[strlen(tp)+1];
     strcpy(_tp,tp);
+    _tp[strlen(tp)]=0;
 	pData=NULL;
 	if (name!=NULL)
 	{
-        sIdent=new char[strlen(name)];
+        sIdent=new char[strlen(name)+1];
         strcpy(sIdent,name);
+        sIdent[strlen(name)]=0;
     }
 }
 
@@ -459,14 +550,16 @@ char* DTPtr::tostring()
     }
     if ((strcmp(_tp,"char")==0)||(strcmp(_tp,"const char")==0))
     {
-        rs=new char[strlen((char*)pData)];
+        rs=new char[strlen((char*)pData)+1];
         strcpy(rs,(char*)pData);
+        rs[strlen((char*)pData)]=0;
     } else
     {
         char* tmp=new char[100];
         sprintf(tmp,"%d",*(int*)pData);
-        rs=new char[strlen(tmp)];
+        rs=new char[strlen(tmp)+1];
         strcpy(rs,tmp);
+        rs[strlen(tmp)]=0;
         delete[] tmp;
     }
 	return rs;
@@ -477,16 +570,18 @@ char* DTPtr::tostring()
 DTArray::DTArray(char* name,int sz,int c,char* tp) //with memalloc
 {
 	if (debugmode) std::cout<<"DTArray("<<((name!=NULL)?name:"NULL")<<", "<<sz<<", "<<c<<", "<<((tp!=NULL)?tp:"NULL")<<")\n";
-	pData=new char[size*c];
+	pData=new char[sz*c];
 	size=size*c;
     size_one=sz;
     count=c;
-    type_one=new char[strlen(tp)];
+    type_one=new char[strlen(tp)+1];
     strcpy(type_one,tp);
+    type_one[strlen(tp)]=0;
     if (name!=NULL)
 	{
-        sIdent=new char[strlen(name)];
+        sIdent=new char[strlen(name)+1];
         strcpy(sIdent,name);
+        sIdent[strlen(name)]=0;
 	}
 }
 
@@ -497,12 +592,14 @@ DTArray::DTArray(char* name,int sz,int c,char* tp,void* init) //with memalloc
 	size=size*c;
     size_one=sz;
     count=c;
-    type_one=new char[strlen(tp)];
+    type_one=new char[strlen(tp)+1];
     strcpy(type_one,tp);
+    type_one[strlen(tp)]=0;
     if (name!=NULL)
 	{
-        sIdent=new char[strlen(name)];
+        sIdent=new char[strlen(name)+1];
         strcpy(sIdent,name);
+        sIdent[strlen(name)]=0;
 	}
 }
 
@@ -593,6 +690,10 @@ char* DTArray::tostring()
 DTVar* CalculateSum2op(DTMain* a,DTMain* b);
 DTVar* CalculateDiff2op(DTMain* a,DTMain* b);
 DTVar* CalculateDiff1op(DTMain* a);
+DTVar* CalculateIncrement1op(DTMain* a);
+DTVar* CalculateDecrement1op(DTMain* a);
+DTVar* CalculateAddress1op(DTMain* a);
+DTVar* CalculateDereference1op(DTMain* a);
 DTVar* CalculateMul2op(DTMain* a,DTMain* b);
 DTVar* CalculateDiv2op(DTMain* a,DTMain* b);
 DTVar* CalculateLarger2op(DTMain* a,DTMain* b);
@@ -602,53 +703,58 @@ DTVar* CalculateLesserOrEqually2op(DTMain* a,DTMain* b);
 DTVar* CalculateEqually2op(DTMain* a,DTMain* b);
 DTVar* CalculateNotEqually2op(DTMain* a,DTMain* b);
 DTVar* CalculateAssignation(DTMain* a,DTMain* b, ag::list<DTVar*>* local);
+DTVar* CalculateArrayGetElement(DTMain* a,DTMain* b);
 
 DTVar* CalculateAct2op(DTMain* a,DTMain* b,char c1,char c2, ag::list<DTVar*>* local)
 {
     if ((c1=='+')&&(c2==' '))
     {
         return CalculateSum2op(a,b);
-    };
+    }
     if ((c1=='-')&&(c2==' '))
     {
         return CalculateDiff2op(a,b);
-    };
+    }
     if ((c1=='*')&&(c2==' '))
     {
         return CalculateMul2op(a,b);
-    };
+    }
     if ((c1=='/')&&(c2==' '))
     {
         return CalculateDiv2op(a,b);
-    };
+    }
     if ((c1=='>')&&(c2==' '))
     {
         return CalculateLarger2op(a,b);
-    };
+    }
     if ((c1=='<')&&(c2==' '))
     {
         return CalculateLesser2op(a,b);
-    };
+    }
     if ((c1=='>')&&(c2=='='))
     {
         return CalculateLargerOrEqually2op(a,b);
-    };
+    }
     if ((c1=='<')&&(c2=='='))
     {
         return CalculateLesserOrEqually2op(a,b);
-    };
+    }
     if ((c1=='=')&&(c2=='='))
     {
         return CalculateEqually2op(a,b);
-    };
+    }
     if ((c1=='!')&&(c2=='='))
     {
         return CalculateNotEqually2op(a,b);
-    };
+    }
     if ((c1=='=')&&(c2==' '))
     {
         return CalculateAssignation(a,b, local);
-    };
+    }
+    if ((c1=='[')&&(c2==' '))
+    {
+        return CalculateArrayGetElement(a,b);
+    }
 }
 
 DTVar* CalculateAct1op(DTMain* a,char c1,char c2)
@@ -656,7 +762,23 @@ DTVar* CalculateAct1op(DTMain* a,char c1,char c2)
     if ((c1=='-')&&(c2=='u'))
     {
         return CalculateDiff1op(a);
-    };
+    }
+    if ((c1=='&')&&(c2=='u'))
+    {
+        return CalculateAddress1op(a);
+    }
+    if ((c1=='*')&&(c2=='u'))
+    {
+        return CalculateDereference1op(a);
+    }
+    if ((c1=='+')&&(c2=='+'))
+    {
+        return CalculateIncrement1op(a);
+    }
+    if ((c1=='-')&&(c2=='-'))
+    {
+        return CalculateDecrement1op(a);
+    }
 }
 
 DTVar* CalculateAssignation(DTMain* a,DTMain* b, ag::list<DTVar*>* local)
@@ -668,21 +790,22 @@ DTVar* CalculateAssignation(DTMain* a,DTMain* b, ag::list<DTVar*>* local)
     }else if ((a->typeoftype()==3)&&(b->typeoftype()==4))
     {
         a->dtmemfree();
-        a->pData=new char[((DTArray*)b)->sizeoftype()];
-        memcpy(a->pData,((DTArray*)b)->pData,((DTArray*)b)->sizeoftype());
+        int a_size=((DTArray*)b)->count*((DTArray*)b)->size_one;
+        a->pData=new char[a_size];
+        memcpy(a->pData,((DTArray*)b)->pData,a_size);
     }
     else if (((a->typeoftype()==b->typeoftype()))||
          ((a->typeoftype()==2)&&(b->typeoftype()==1))||
          ((a->typeoftype()==1)&&(b->typeoftype()==2)))
     {
-        a->dtmemfree();
+        //a->dtmemfree();
         rpnlist* rl=new rpnlist;
         RPNStackElement* rse=new RPNStackElement;
         rse->tp=rsetNum;
         rse->d=b;
         rl->add_tail(rse);
         DTVar* dv=ParseDataTypeString(a->DTName(),a->sIdent,rl,local);
-        a->assign((DTMain*)(dv->T));
+        a->assign((DTMain*)(dv->T),true);
         if (debugmode) std::cout<<"CalculateAssignation(): a="<<a->tostring()<<"\n";
     }else
     {
@@ -699,13 +822,41 @@ DTVar* CalculateAssignation(DTMain* a,DTMain* b, ag::list<DTVar*>* local)
     return DTVar::CreateNativeDTVarFromDTMain(a);
 }
 
+DTVar* CalculateArrayGetElement(DTMain* a,DTMain* b)
+{
+    if ((a->typeoftype()==4)&&(b->typeoftype()==1))
+    {
+        return (((DTArray*)a)->GetElement(b->toint()));
+    }
+    if ((a->typeoftype()==3)&&(b->typeoftype()==1))
+    {
+        if (((DTPtr*)a)->_tp!=NULL)
+        {
+            DTVar* dv=ParseDataTypeString(a->DTName(),NULL,NULL,NULL);
+            ((DTMain*)(dv->T))->pData=((char*)(((DTPtr*)a)->pData))+(b->toint())*(((DTMain*)(dv->T))->sizeoftype());
+            return dv;
+        }else
+        {
+        }
+
+    }
+}
+
 DTVar* CalculateSum2op(DTMain* a,DTMain* b)
 {
      //integer
-     if ((a->typeoftype()==b->typeoftype())&&(a->typeoftype()==1))
+     if (((a->typeoftype()==b->typeoftype())&&(a->typeoftype()==1))||((a->typeoftype()==3)&&(b->typeoftype()==1)))
      {
-         DTBigIntegerType* k=new DTBigIntegerType(NULL, ((DTIntegerTypes*)a)->toint()+((DTIntegerTypes*)b)->toint());
-         return DTVar::CreateNativeDTVarFromDTMain(k);
+        if (a->typeoftype()==3)
+        {
+            DTPtr* k=new DTPtr(NULL, ((DTPtr*)a)->_tp, (void*)(((DTIntegerTypes*)a)->toint()+((DTIntegerTypes*)b)->toint()));
+            return DTVar::CreatePointerDTVarFromDTMain(k);
+        }
+        else
+        {
+            DTBigIntegerType* k=new DTBigIntegerType(NULL, ((DTIntegerTypes*)a)->toint()+((DTIntegerTypes*)b)->toint());
+            return DTVar::CreateNativeDTVarFromDTMain(k);
+        }
      };
      //float
      if (((a->typeoftype()==2)&&((b->typeoftype()==1)||(b->typeoftype()==2)))||
@@ -716,10 +867,35 @@ DTVar* CalculateSum2op(DTMain* a,DTMain* b)
      };
 }
 
+DTVar* CalculateDiff2op(DTMain* a,DTMain* b)
+{
+     //integer
+     if (((a->typeoftype()==b->typeoftype())&&(a->typeoftype()==1))||((a->typeoftype()==3)&&(b->typeoftype()==1)))
+     {
+        if (a->typeoftype()==3)
+        {
+            DTPtr* k=new DTPtr(NULL, ((DTPtr*)a)->_tp, (void*)(((DTIntegerTypes*)a)->toint()-((DTIntegerTypes*)b)->toint()));
+            return DTVar::CreatePointerDTVarFromDTMain(k);
+        }
+        else
+        {
+            DTBigIntegerType* k=new DTBigIntegerType(NULL, ((DTIntegerTypes*)a)->toint()-((DTIntegerTypes*)b)->toint());
+            return DTVar::CreateNativeDTVarFromDTMain(k);
+        }
+     };
+     //float
+     if (((a->typeoftype()==2)&&((b->typeoftype()==1)||(b->typeoftype()==2)))||
+         ((b->typeoftype()==2)&&((a->typeoftype()==1)||(a->typeoftype()==2))))
+     {
+         DTBigFloatType* k=new DTBigFloatType(NULL, ((DTFloatTypes*)a)->tofloat()-((DTFloatTypes*)b)->tofloat());
+         return DTVar::CreateNativeDTVarFromDTMain(k);
+     };
+}
+
 DTVar* CalculateLarger2op(DTMain* a,DTMain* b)
 {
      //integer or float
-     if (((a->typeoftype()==1)||(a->typeoftype()==2))&&((b->typeoftype()==1)||(b->typeoftype()==2)))
+     if ((ag::set("\1\2\3")%(a->typeoftype()))&&(ag::set("\1\2\3")%(b->typeoftype())))
      {
          DTBigIntegerType* k=new DTBigIntegerType(NULL, ((DTFloatTypes*)a)->tofloat()>((DTFloatTypes*)b)->tofloat());
          return DTVar::CreateNativeDTVarFromDTMain(k);
@@ -729,7 +905,7 @@ DTVar* CalculateLarger2op(DTMain* a,DTMain* b)
 DTVar* CalculateLargerOrEqually2op(DTMain* a,DTMain* b)
 {
      //integer or float
-     if (((a->typeoftype()==1)||(a->typeoftype()==2))&&((b->typeoftype()==1)||(b->typeoftype()==2)))
+     if ((ag::set("\1\2\3")%(a->typeoftype()))&&(ag::set("\1\2\3")%(b->typeoftype())))
      {
          DTBigIntegerType* k=new DTBigIntegerType(NULL, ((DTFloatTypes*)a)->tofloat()>=((DTFloatTypes*)b)->tofloat());
          return DTVar::CreateNativeDTVarFromDTMain(k);
@@ -739,7 +915,7 @@ DTVar* CalculateLargerOrEqually2op(DTMain* a,DTMain* b)
 DTVar* CalculateLesser2op(DTMain* a,DTMain* b)
 {
      //integer or float
-     if (((a->typeoftype()==1)||(a->typeoftype()==2))&&((b->typeoftype()==1)||(b->typeoftype()==2)))
+     if ((ag::set("\1\2\3")%(a->typeoftype()))&&(ag::set("\1\2\3")%(b->typeoftype())))
      {
          DTBigIntegerType* k=new DTBigIntegerType(NULL, ((DTFloatTypes*)a)->tofloat()<((DTFloatTypes*)b)->tofloat());
          return DTVar::CreateNativeDTVarFromDTMain(k);
@@ -749,7 +925,7 @@ DTVar* CalculateLesser2op(DTMain* a,DTMain* b)
 DTVar* CalculateLesserOrEqually2op(DTMain* a,DTMain* b)
 {
      //integer or float
-     if (((a->typeoftype()==1)||(a->typeoftype()==2))&&((b->typeoftype()==1)||(b->typeoftype()==2)))
+     if ((ag::set("\1\2\3")%(a->typeoftype()))&&(ag::set("\1\2\3")%(b->typeoftype())))
      {
          DTBigIntegerType* k=new DTBigIntegerType(NULL, ((DTFloatTypes*)a)->tofloat()<=((DTFloatTypes*)b)->tofloat());
          return DTVar::CreateNativeDTVarFromDTMain(k);
@@ -759,7 +935,7 @@ DTVar* CalculateLesserOrEqually2op(DTMain* a,DTMain* b)
 DTVar* CalculateEqually2op(DTMain* a,DTMain* b)
 {
      //integer or float
-     if (((a->typeoftype()==1)||(a->typeoftype()==2))&&((b->typeoftype()==1)||(b->typeoftype()==2)))
+     if ((ag::set("\1\2\3")%(a->typeoftype()))&&(ag::set("\1\2\3")%(b->typeoftype())))
      {
          DTBigIntegerType* k=new DTBigIntegerType(NULL, ((DTFloatTypes*)a)->tofloat()==((DTFloatTypes*)b)->tofloat());
          return DTVar::CreateNativeDTVarFromDTMain(k);
@@ -769,28 +945,11 @@ DTVar* CalculateEqually2op(DTMain* a,DTMain* b)
 DTVar* CalculateNotEqually2op(DTMain* a,DTMain* b)
 {
      //integer or float
-     if (((a->typeoftype()==1)||(a->typeoftype()==2))&&((b->typeoftype()==1)||(b->typeoftype()==2)))
+     if ((ag::set("\1\2\3")%(a->typeoftype()))&&(ag::set("\1\2\3")%(b->typeoftype())))
      {
          DTBigIntegerType* k=new DTBigIntegerType(NULL, ((DTFloatTypes*)a)->tofloat()!=((DTFloatTypes*)b)->tofloat());
          return DTVar::CreateNativeDTVarFromDTMain(k);
-     };
-}
-
-DTVar* CalculateDiff2op(DTMain* a,DTMain* b)
-{
-     //integer
-     if ((a->typeoftype()==b->typeoftype())&&(a->typeoftype()==1))
-     {
-         DTInt* k=new DTBigIntegerType(NULL, ((DTIntegerTypes*)a)->toint()-((DTIntegerTypes*)b)->toint());
-         return DTVar::CreateNativeDTVarFromDTMain(k);
-     };
-     //float
-     if (((a->typeoftype()==2)&&((b->typeoftype()==1)||(b->typeoftype()==2)))||
-         ((b->typeoftype()==2)&&((a->typeoftype()==1)||(a->typeoftype()==2))))
-     {
-         DTBigFloatType* k=new DTBigFloatType(NULL, ((DTFloatTypes*)a)->tofloat()-((DTFloatTypes*)b)->tofloat());
-         return DTVar::CreateNativeDTVarFromDTMain(k);
-     };
+     }
 }
 
 DTVar* CalculateDiff1op(DTMain* a)
@@ -807,6 +966,69 @@ DTVar* CalculateDiff1op(DTMain* a)
          DTBigFloatType* k=new DTBigFloatType(NULL, -((DTFloatTypes*)a)->tofloat());
          return DTVar::CreateNativeDTVarFromDTMain(k);
      };
+}
+
+DTVar* CalculateDecrement1op(DTMain* a)
+{
+     //integer
+     if (a->typeoftype()==1)
+     {
+         DTInt* k=new DTBigIntegerType(NULL, ((DTIntegerTypes*)a)->toint()-1);
+         CalculateAssignation(a,k,NULL);
+         return DTVar::CreateNativeDTVarFromDTMain(k);
+     }
+     //float
+     if (a->typeoftype()==2)
+     {
+         DTBigFloatType* k=new DTBigFloatType(NULL, ((DTFloatTypes*)a)->tofloat()-1);
+         CalculateAssignation(a,k,NULL);
+         return DTVar::CreateNativeDTVarFromDTMain(k);
+     }
+}
+
+DTVar* CalculateIncrement1op(DTMain* a)
+{
+     //integer
+     if (a->typeoftype()==1)
+     {
+         DTInt* k=new DTBigIntegerType(NULL, ((DTIntegerTypes*)a)->toint()+1);
+         CalculateAssignation(a,k,NULL);
+         return DTVar::CreateNativeDTVarFromDTMain(k);
+     };
+     //float
+     if (a->typeoftype()==2)
+     {
+         DTBigFloatType* k=new DTBigFloatType(NULL, ((DTFloatTypes*)a)->tofloat()+1);
+         CalculateAssignation(a,k,NULL);
+         return DTVar::CreateNativeDTVarFromDTMain(k);
+     };
+}
+
+DTVar* CalculateAddress1op(DTMain* a)
+{
+    DTVar* x=ParseDataTypeString(a->DTName(),NULL,NULL,NULL);
+    if (x->dtet==dtetNative)
+    {
+        DTPtr* m=new DTPtr(NULL,a->DTName(),a->pData);
+        return DTVar::CreatePointerDTVarFromDTMain(m);
+    }
+    if (x->dtet==dtetPointer)
+    {
+        void** x=new void*;
+        *x=a->pData;
+        DTPtr* m=new DTPtr(NULL,a->DTName(),x);
+        return DTVar::CreatePointerDTVarFromDTMain(m);
+    }
+}
+
+DTVar* CalculateDereference1op(DTMain* a)
+{
+     DTVar* x=ParseDataTypeString(((DTPtr*)a)->_tp,NULL,NULL,NULL);
+     if(x->dtet==dtetNative)
+        ((DTMain*)x->T)->pData=a->pData;
+     if(x->dtet==dtetPointer)
+        ((DTMain*)x->T)->pData=*(void**)a->pData;
+     return x;
 }
 
 DTVar* CalculateMul2op(DTMain* a,DTMain* b)
@@ -882,8 +1104,8 @@ void* DoIntInitializeActions(int t,char* sDT,char* sName, rpnlist* data,DTVar* k
         {
             ((DTIntegerTypes*)(k->T))->setint(0);
         }
-    };
-};
+    }
+}
 
 void* DoDoubleInitializeActions(int t,char* sDT,char* sName, rpnlist* data,DTVar* k, ag::list<DTVar*>* local)
 {
@@ -919,8 +1141,13 @@ void* DoDoubleInitializeActions(int t,char* sDT,char* sName, rpnlist* data,DTVar
         {
             ((DTFloatTypes*)(k->T))->setfloat(0);
         }
-    };
-};
+    }
+}
+
+DTVar* DTMakeCopy(DTVar* x)
+{
+    DTVar* m = ParseDataTypeString(((DTMain*)(x->T))->DTName(),((DTMain*)(x->T))->sIdent,NULL,NULL);
+}
 
 DTVar* ParseDataTypeString(char* sDT,char* sName, rpnlist* data, ag::list<DTVar*>* local)
 {
@@ -941,6 +1168,8 @@ DTVar* ParseDataTypeString(char* sDT,char* sName, rpnlist* data, ag::list<DTVar*
             k->dtet=dtetPointer;
             //k->T=ParseDataTypeString(ss,sName,data);
             k->T=new DTPtr(sName,ss);
+
+//            data->add_head(k);
             return k;
         }
         if (debugmode) std::cout<<sDT<<" is native data\n";
