@@ -670,16 +670,16 @@ void CPRApplication::PreprocessComments(char** saveto, char* fText, char* workdi
         if (p->data.petCurrType==petEOF) break;
         if (p->data.sCurrText[0]=='/')
         {
+            iSt=p->data.iStartPos;
             p=p->next;
             if (p->data.sCurrText[0]=='/')
             {
-                iSt=p->data.iStartPos;
                 ReadToEOLN(&p,sText);
 
                 iEnd=p->data.iFinishPos;
-                for (int j=iSt;j<=iEnd;j++)
+                for (int j=iSt;j<iEnd;j++)
                 {
-                    sText[j]=' ';
+                    sText[j]='\n';
                 }
             }
         }
@@ -698,7 +698,7 @@ void CPRApplication::Preprocessing(char** saveto, char* sText, char* workdir)
     // 3) обработка pragma
     ;
     // 4) обработка комментариев
-    //PreprocessComments      (saveto,((saveto!=NULL)?*saveto:sPText),workdir);
+    PreprocessComments      (saveto,((saveto!=NULL)?*saveto:sPText),workdir);
 }
 
 bool CPRApplication::HashBang()
