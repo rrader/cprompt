@@ -648,6 +648,46 @@ void CPRApplication::PreprocessDefineConsts(char** saveto, char* fText, char* wo
     ((saveto!=NULL)?*saveto:sPText) = y;
 }
 
+void CPRApplication::PreprocessComments(char** saveto, char* fText, char* workdir)
+{
+    // обработка комментариев
+    char* sText=new char[strlen(fText)+1];
+    strcpy(sText,fText);
+    sText[strlen(fText)]=0;
+    ag::list<CPRTokenInfo>* pTok=new ag::list<CPRTokenInfo>;
+    ParseIt(pTok,sText,true,true);
+    ag::list<StartEndStruct> StartEndList;
+    ag::list<StartEndStruct> ToErase;
+    StartEndStruct ses;
+    CPRDefine dfn;
+    ag::list<CPRTokenInfo>* Tk=new ag::list<CPRTokenInfo>;
+
+    //ag::list<CPRDefine> sDefinesL;
+    int iSt,iEnd;
+
+    for(ag::list<CPRTokenInfo>::member p=pTok->head;(p!=NULL);p=p->next)
+    {
+        if (p->data.petCurrType==petEOF) break;
+        if (p->data.sCurrText[0]=='/')
+        {
+            p=p->next;
+            if (p->data.sCurrText[0]=='/')
+            {
+                iSt=p->data.iStartPos;
+                ReadToEOLN(&p,sText);
+
+                iEnd=p->data.iFinishPos;
+                for (int j=iSt;j<=iEnd;j++)
+                {
+                    sText[j]=' ';
+                }
+            }
+        }
+    }
+
+    ((saveto!=NULL)?*saveto:sPText) = sText;
+}
+
 void CPRApplication::Preprocessing(char** saveto, char* sText, char* workdir)
 {
     // 1) обработка инклудов

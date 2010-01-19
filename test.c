@@ -9,5 +9,5 @@ int main(int argc,char* argv[])
 {
     char* x="1234567890";
     x=x+3;
-    printf("%s",x);
+    printf("123%s",x);
 }

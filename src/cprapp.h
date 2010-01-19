@@ -105,6 +105,7 @@ private:
     void PreprocessIfDefs       (char**saveto=NULL, char* sText=NULL, char* workdir=NULL);
     void PreprocessDefineConsts (char**saveto=NULL, char* fText=NULL, char* workdir=NULL);
     void PreprocessIncludes     (char**saveto=NULL, char* sText=NULL, char* workdir=NULL);
+    void PreprocessComments     (char**saveto=NULL, char* sText=NULL, char* workdir=NULL);
     void* CreateBufferFromStackStdCall(ag::list<CPRTextDataType>* params,int& WordCount);
 };
 
