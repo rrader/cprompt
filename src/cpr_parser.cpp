@@ -40,62 +40,62 @@ void CPRTokenInfo::operator=(CPRTokenInfo& _sec)
 
     CPRParserExpType CPRParser::NowType()
     {
-        return petCurrType;
+	return petCurrType;
     }
 
     void CPRParser::SetReadNegativeNumbers(bool Value)
     {
-        bReadNegativeNumbers=Value;
+	bReadNegativeNumbers=Value;
     }
 
     void CPRParser::SetReadEOLN(bool Value)
     {
-        bReadEOLN=Value;
+	bReadEOLN=Value;
     }
 
     void CPRParser::SetReadQuotedStrings(bool Value)
     {
-        bReadQuotedStrings=Value;
+	bReadQuotedStrings=Value;
     }
 
     void CPRParser::SetReadSpaces(bool Value)
     {
-        bReadSpaces=Value;
+	bReadSpaces=Value;
     }
 
     bool CPRParser::GetReadSpaces()
     {
-        return bReadSpaces;
+	return bReadSpaces;
     };
 
     bool CPRParser::GetNegativeNumbers()
     {
-        return bReadNegativeNumbers;
+	return bReadNegativeNumbers;
     };
 
     bool CPRParser::GetReadQuotedStrings()
     {
-        return bReadQuotedStrings;
+	return bReadQuotedStrings;
     };
 
     bool CPRParser::GetReadEOLN()
     {
-        return bReadEOLN;
+	return bReadEOLN;
     };
 
     int  CPRParser::CurrPosition()
     {
-        return iPosition;
+	return iPosition;
     };
 
     int  CPRParser::CurrLength()
     {
-        return iCurrLength;
+	return iCurrLength;
     };
 
     char* CPRParser::NowStr()
     {
-        return sCurrText;
+	return sCurrText;
     };
 
 CPRParser::CPRParser(char* sText,int offset)
@@ -158,52 +158,52 @@ CPRParserExpType CPRParser::NewPosition()
 {
     if (iPosition>=iSize)
     {
-        petCurrType=petEOF;
+	petCurrType=petEOF;
     }
     else
     {
-        if (stSpaceSymb%sPText[iPosition])
-        {
-            petCurrType=petSpace;
-            stCurrSymbs=stSpaceSymb;
-        }
-        else
-            if (stTxtSymb%sPText[iPosition])
-            {
-                petCurrType=petString;
-                stCurrSymbs=stTxtSymb;
-            }
-            else
-                if ((stNumSymb-".e")%sPText[iPosition])
-                {
-                    petCurrType=petInt;
-                    stCurrSymbs=stNumSymb;
-                }
-                else
-                    if (stBreakSymb%sPText[iPosition])
-                    {
-                        petCurrType=petEOLN;
-                        stCurrSymbs=stBreakSymb;
-                    }
-                    else
-                        if ((sPText[iPosition]=='.')&&((iPosition+1)<iSize)&&
-                                (ag::set("0123456789")%sPText[iPosition+1]))
-                        {
-                            petCurrType=petFloat;
-                            stCurrSymbs=stNumSymb;
-                        }
-                        else
-                            if ((sPText[iPosition]=='-')&&(bReadNegativeNumbers)&&((iPosition+1)<iSize)&&
-                                    (ag::set("0123456789")%sPText[iPosition+1]))
-                            {
-                                petCurrType=petInt;
-                                stCurrSymbs=stNumSymb;
-                            }
-                            else
-                            {
-                                petCurrType=petOther;
-                                stCurrSymbs="";
-                            }
+	if (stSpaceSymb%sPText[iPosition])
+	{
+	    petCurrType=petSpace;
+	    stCurrSymbs=stSpaceSymb;
+	}
+	else
+	    if (stTxtSymb%sPText[iPosition])
+	    {
+		petCurrType=petString;
+		stCurrSymbs=stTxtSymb;
+	    }
+	    else
+		if ((stNumSymb-".e")%sPText[iPosition])
+		{
+		    petCurrType=petInt;
+		    stCurrSymbs=stNumSymb;
+		}
+		else
+		    if (stBreakSymb%sPText[iPosition])
+		    {
+			petCurrType=petEOLN;
+			stCurrSymbs=stBreakSymb;
+		    }
+		    else
+			if ((sPText[iPosition]=='.')&&((iPosition+1)<iSize)&&
+				(ag::set("0123456789")%sPText[iPosition+1]))
+			{
+			    petCurrType=petFloat;
+			    stCurrSymbs=stNumSymb;
+			}
+			else
+			    if ((sPText[iPosition]=='-')&&(bReadNegativeNumbers)&&((iPosition+1)<iSize)&&
+				    (ag::set("0123456789")%sPText[iPosition+1]))
+			    {
+				petCurrType=petInt;
+				stCurrSymbs=stNumSymb;
+			    }
+			    else
+			    {
+				petCurrType=petOther;
+				stCurrSymbs="";
+			    }
     }
 }
 
@@ -221,59 +221,59 @@ char* CPRParser::Next(bool bClearLast)
     int iLen=0;
     if (!bClearLast)
     {
-        strcpy(sres,sCurrText);
-        iLen=iCurrLength;
+	strcpy(sres,sCurrText);
+	iLen=iCurrLength;
     }
 
     if ((bReadQuotedStrings)&&(sPText[iPosition]=='"'))
     {
-        //int* K=new int;
-        sres[iLen]=sPText[iPosition];
-        if (debugmode) std::cout<<sres[iLen];
-        if (debugmode) std::cout.flush();
-        stCurrSymbs+=sres[iLen];
-        iPosition++; iLen++;
-        while(sPText[iPosition]!='"')
-        {
-            sres[iLen]=sPText[iPosition];
-            if (debugmode) std::cout<<sres[iLen];
-            if (debugmode) std::cout.flush();
-            stCurrSymbs+=sres[iLen];
-            iLen++;
-            iPosition++;
-            if (iPosition>=iSize) break;
-        }
-        sres[iLen]=sPText[iPosition];
-        if (debugmode) std::cout<<sres[iLen]<<"\n";
-        std::cout.flush();
-        stCurrSymbs+=sres[iLen];
-        iLen++;
-        iPosition++;
-        petCurrType=petQuotedStr;
+	//int* K=new int;
+	sres[iLen]=sPText[iPosition];
+	if (debugmode) std::cout<<sres[iLen];
+	if (debugmode) std::cout.flush();
+	stCurrSymbs+=sres[iLen];
+	iPosition++; iLen++;
+	while(sPText[iPosition]!='"')
+	{
+	    sres[iLen]=sPText[iPosition];
+	    if (debugmode) std::cout<<sres[iLen];
+	    if (debugmode) std::cout.flush();
+	    stCurrSymbs+=sres[iLen];
+	    iLen++;
+	    iPosition++;
+	    if (iPosition>=iSize) break;
+	}
+	sres[iLen]=sPText[iPosition];
+	if (debugmode) std::cout<<sres[iLen]<<"\n";
+	std::cout.flush();
+	stCurrSymbs+=sres[iLen];
+	iLen++;
+	iPosition++;
+	petCurrType=petQuotedStr;
     }else
     {
-        do
-        {
-            if ((sPText[iPosition]=='-')&&(stCurrSymbs%"-"))
-                stCurrSymbs-='-';
-            if ((ag::set(sres)%'.')&&(sPText[iPosition]=='.'))
-                break;
+	do
+	{
+	    if ((sPText[iPosition]=='-')&&(stCurrSymbs%"-"))
+		stCurrSymbs-='-';
+	    if ((ag::set(sres)%'.')&&(sPText[iPosition]=='.'))
+		break;
 
-            if ((sPText[iPosition]=='e')&&((petCurrType==petFloat)||(petCurrType==petInt)))
-            {
-                if ((iPosition+1<iSize)&&(ag::set("0123456789-")%sPText[iPosition+1]))
-                    stCurrSymbs+='-';
-                else break;
-            }
+	    if ((sPText[iPosition]=='e')&&((petCurrType==petFloat)||(petCurrType==petInt)))
+	    {
+		if ((iPosition+1<iSize)&&(ag::set("0123456789-")%sPText[iPosition+1]))
+		    stCurrSymbs+='-';
+		else break;
+	    }
 
-            if ((sPText[iPosition]=='.')&&(petCurrType=petInt))
-                petCurrType=petFloat;
+	    if ((sPText[iPosition]=='.')&&(petCurrType=petInt))
+		petCurrType=petFloat;
 
-            sres[iLen]=sPText[iPosition];
-            iLen++;
-            iPosition++;
-        }
-        while (((iPosition<iSize)&&(stCurrSymbs.present(sPText[iPosition]))));
+	    sres[iLen]=sPText[iPosition];
+	    iLen++;
+	    iPosition++;
+	}
+	while (((iPosition<iSize)&&(stCurrSymbs.present(sPText[iPosition]))));
     }
     //sres[iLen]=0;
     sCurrText=new char[strlen(sres)+1];
@@ -302,8 +302,8 @@ char* CPRParser::ReadToEOLN()
     int sz=0;
     while ((!(stBreakSymb%sPText[iPosition]))&&(iPosition<iSize))
     {
-        iPosition++;
-        sz++;
+	iPosition++;
+	sz++;
     }
     char* res=new char[sz+1];
     for (int i=0;i<sz;i++) res[i]=sPText[iPos1+i];
@@ -330,21 +330,21 @@ char* CPRParser::ReadIdent()
     int sz=0;
     while (sAllowed%sPText[iPosition-iCurrLength])
     {
-        iPosition++;
-        sz++;
-        if (sz==1) sAllowed+=stNumSymb+"_";
+	iPosition++;
+	sz++;
+	if (sz==1) sAllowed+=stNumSymb+"_";
     }
     if (sz==0)
     {
-        Next();
-        return sCurrText;
+	Next();
+	return sCurrText;
     }
     else
     {
-        char* res=new char[sz+1];
-        for (int i=0;i<sz;i++) res[i]=sPText[iPos1+i];
-        res[sz]=0;
-        Next();
-        return res;
+	char* res=new char[sz+1];
+	for (int i=0;i<sz;i++) res[i]=sPText[iPos1+i];
+	res[sz]=0;
+	Next();
+	return res;
     }
 }

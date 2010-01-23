@@ -1,6 +1,7 @@
   .globl CallCDecl
-  .type CallCDecl, @function
+  .globl _CallCDecl
    	CallCDecl:
+   	_CallCDecl:
     pushl %ebp
     movl %esp, %ebp
 

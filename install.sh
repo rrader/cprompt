@@ -3,6 +3,7 @@ echo "Welcome to CPrompt installer!"
 DIR=`pwd`
 echo "Installation directory: ${DIR}\n"
 echo "1) Making"
+cd src
 make
 echo "Making complete!\n"
 echo "2) Adding enviromnent variable..."

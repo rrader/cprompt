@@ -1,2 +1,2 @@
-int printf (char* s,...);
-int scanf  (char* s,...);
+outside cdecl: int printf (char* s,...);
+outside cdecl: int scanf  (char* s,...);

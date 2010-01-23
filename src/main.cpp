@@ -195,7 +195,7 @@ debugmode=false;
     if (argc<=1)
     {
         std::cout<<"Usage: cprompt \"/path/to/your/script.c\"\n";
-        return 0;
+        return 1;
     }
     while (true)
     {
@@ -245,6 +245,7 @@ debugmode=false;
     if (!FileExists(argv[argnum]))
     {
         std::cout<<"(FATAL ERROR) File not found\n";
+        return 1;
     }
     if (debugmode) std::cout<<"Start...\n";
 
